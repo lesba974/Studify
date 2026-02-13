@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import ca.uqac.studify.model.Task
 import ca.uqac.studify.ui.components.TaskCard
 import ca.uqac.studify.data.RoutineUtils
+import ca.uqac.studify.ui.components.DateDuJourText
 
 @Composable
 fun StudifyScreen() {
@@ -60,11 +61,7 @@ fun StudifyScreen() {
                         fontWeight = FontWeight.Black,
                         letterSpacing = (-1).sp
                     )
-                    Text(
-                        text = "Mercredi, 4 février 2026",
-                        color = Color(0xFF7E8494),
-                        fontSize = 14.sp
-                    )
+                    DateDuJourText()
                 }
             }
 
