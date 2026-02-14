@@ -25,7 +25,7 @@ implementation("androidx.compose.material3")
 
 ```
 
-## 👥 Équipe
+## Équipe
 
 - Fonseca Iliann
 - Lesbarrères Emma
@@ -33,6 +33,6 @@ implementation("androidx.compose.material3")
 - Slimani Fairouz 
 
 
-## 📄 Licence
+## Licence
 
 Ce projet est réalisé dans le cadre du cours **8INF257 - Informatique Mobile** à l'UQAC.
