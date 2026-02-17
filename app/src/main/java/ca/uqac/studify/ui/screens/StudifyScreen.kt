@@ -25,101 +25,76 @@ import ca.uqac.studify.ui.components.DateDuJourText
 
 @Composable
 fun StudifyScreen() {
-    // 1. GESTION DE L'ÉTAT ET DES DONNÉES
-    var selectedTab by remember { mutableStateOf("Aujourd'hui") }
     val allTasks = RoutineUtils.getMockRoutines()
 
-    // 2. CONTENEUR PRINCIPAL
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF1B2244), Color(0xFF0F1221))
-                )
-            )
-    ) {
-        // --- COLONNE PRINCIPALE (Header + Liste)
-        Column(modifier = Modifier.fillMaxSize()) {
-
-            // A. LE HEADER
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = Color(0xFF4B39EF),
-                shape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp),
-                shadowElevation = 8.dp
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { /* Action ajouter */ },
+                containerColor = Color.White,
+                shape = CircleShape,
+                modifier = Modifier.size(72.dp)
             ) {
-                Column(
-                    modifier = Modifier
-                        .padding(horizontal = 24.dp)
-                        .padding(top = 50.dp, bottom = 28.dp)
-                ) {
-                    Text(
-                        text = "Studify",
-                        color = Color.White,
-                        fontSize = 44.sp,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = (-1).sp
-                    )
-                    DateDuJourText()
-                }
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Ajouter une routine",
+                    tint = Color.Black,
+                    modifier = Modifier.size(36.dp)
+                )
             }
+        },
+        containerColor = Color.Transparent
+    ) { contentPadding ->
 
-            // B. CONTENU SOUS LE HEADER (Filtres + Liste)
-            Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(Color(0xFF1B2244), Color(0xFF0F1221))
+                    )
+                )
+        ) {
+            // COLONNE PRINCIPALE (Header + Liste)
+            Column(modifier = Modifier.fillMaxSize()) {
 
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // LES ONGLETS DE FILTRAGE
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    FilterTab("Aujourd'hui", selectedTab == "Aujourd'hui") { selectedTab = "Aujourd'hui" }
-                    FilterTab("Semaine", selectedTab == "Semaine") { selectedTab = "Semaine" }
-                    FilterTab("Toutes", selectedTab == "Toutes") { selectedTab = "Toutes" }
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = Color(0xFF4B39EF),
+                    shape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp),
+                    shadowElevation = 8.dp
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .padding(horizontal = 28.dp)
+                            .padding(top = 60.dp, bottom = 36.dp)
+                    ) {
+                        Text(
+                            text = "Studify",
+                            color = Color.White,
+                            fontSize = 52.sp,
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = (-1).sp
+                        )
+                        DateDuJourText()
+                    }
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
-
-                // LA LISTE DES ROUTINES
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(bottom = 100.dp) // Espace pour le bouton (+)
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(
+                        top = 28.dp,
+                        bottom = 100.dp
+                    )
                 ) {
                     items(allTasks) { currentTask ->
                         TaskCard(task = currentTask)
                     }
                 }
             }
-        } // Fin de la Column principale
-
-        // 3. LE BOUTON (+) FLOTTANT (Enfant direct de la Box)
-        FloatingActionButton(
-            onClick = { /* Action ajouter */ },
-            modifier = Modifier
-                .align(Alignment.BottomEnd) // Aligné en bas à droite de la BOX
-                .padding(24.dp)
-                .size(64.dp),
-            containerColor = Color.White,
-            shape = CircleShape
-        ) {
-            Icon(Icons.Default.Add, contentDescription = null, tint = Color.Black, modifier = Modifier.size(32.dp))
         }
-    }
-}
-
-@Composable
-fun FilterTab(text: String, isSelected: Boolean, onClick: () -> Unit) {
-    Surface(
-        modifier = Modifier.clickable { onClick() },
-        color = if (isSelected) Color(0xFF353FD1) else Color(0xFF1E243D),
-        shape = RoundedCornerShape(10.dp)
-    ) {
-        Text(
-            text = text,
-            color = Color.White,
-            modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp),
-            fontSize = 14.sp,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-        )
     }
 }
