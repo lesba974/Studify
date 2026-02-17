@@ -20,12 +20,12 @@ fun TaskCard(task: Task) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, Color(0xFF3D4566)), // Bordure
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E243D)) // Fond
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, Color(0xFF3D4566)),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E243D))
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            // LIGNE 1 : [ Icône + Titre ] ....... [ Badge ]
+        Column(modifier = Modifier.padding(20.dp)) {
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -36,75 +36,73 @@ fun TaskCard(task: Task) {
                         imageVector = task.icon,
                         contentDescription = null,
                         tint = Color.White,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(28.dp)
                     )
-                    Spacer(modifier = Modifier.width(12.dp))
+                    Spacer(modifier = Modifier.width(14.dp))
                     Text(
                         text = task.title,
                         color = Color.White,
-                        fontSize = 18.sp,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
 
-                // Badge de catégorie (Travail / Santé)
+                // Badge de catégorie
                 Surface(
                     color = if (task.category == "Travail") Color(0xFF4A4B6E) else Color(0xFF1B4D3E),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(20.dp)
                 ) {
                     Text(
                         text = task.category,
                         color = if (task.category == "Travail") Color.White else Color(0xFF4ADE80),
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                        fontSize = 10.sp
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }
 
-            // LIGNE 2 : Description
             Text(
                 text = task.description,
                 color = Color.LightGray,
-                fontSize = 14.sp,
-                modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 12.dp)
+                fontSize = 15.sp,
+                lineHeight = 20.sp,
+                modifier = Modifier.padding(start = 42.dp, top = 8.dp, bottom = 14.dp)
             )
 
-            // LIGNE 3 : heure et lieux
             Row(
                 modifier = Modifier
-                    .padding(start = 32.dp)
+                    .padding(start = 42.dp)
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Bloc Heure
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.Schedule,
                         contentDescription = null,
                         tint = Color.Gray,
-                        modifier = Modifier.size(14.dp)
+                        modifier = Modifier.size(16.dp)
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = task.time,
                         color = Color.Gray,
-                        fontSize = 12.sp
+                        fontSize = 13.sp
                     )
                 }
 
-                // Bloc Lieu
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.Place,
                         contentDescription = null,
                         tint = Color.Gray,
-                        modifier = Modifier.size(14.dp)
+                        modifier = Modifier.size(16.dp)
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = task.location,
                         color = Color.Gray,
-                        fontSize = 12.sp
+                        fontSize = 13.sp
                     )
                 }
             }
