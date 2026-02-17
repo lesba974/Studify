@@ -15,7 +15,7 @@ Studify est une application Android développée en Kotlin avec Jetpack Compose 
 - **Target SDK:** API 36
 - **IDE:** Android Studio
 
-## 👥 Équipe
+## Équipe
 
 - Fonseca Iliann
 - Lesbarrères Emma
@@ -23,6 +23,6 @@ Studify est une application Android développée en Kotlin avec Jetpack Compose 
 - Slimani Fairouz 
 
 
-## 📄 Licence
+## Licence
 
 Ce projet est réalisé dans le cadre du cours **8INF257 - Informatique Mobile** à l'UQAC.
