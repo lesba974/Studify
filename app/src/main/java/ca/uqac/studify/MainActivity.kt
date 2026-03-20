@@ -23,7 +23,6 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
 
-        // Initialiser la database et le repository
         val database = StudifyDatabase.getDatabase(applicationContext)
         val repository = TaskRepository(database.taskDao())
 
@@ -33,18 +32,14 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    // Créer le NavController
                     val navController = rememberNavController()
 
-                    // Créer les ViewModels
                     val homeViewModel: HomeViewModel = viewModel()
                     val addEditViewModel: AddEditTaskViewModel = viewModel()
 
-                    // Passer le repository aux ViewModels
                     homeViewModel.setRepository(repository)
                     addEditViewModel.setRepository(repository)
 
-                    // Lancer la navigation
                     NavGraph(
                         navController = navController,
                         homeViewModel = homeViewModel,

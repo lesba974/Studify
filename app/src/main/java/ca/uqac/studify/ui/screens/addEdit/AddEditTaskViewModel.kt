@@ -36,6 +36,9 @@ class AddEditTaskViewModel : ViewModel() {
 
     private var currentTaskId: Long? = null
 
+    var endTime by mutableStateOf("")
+        private set
+
     fun setRepository(repo: TaskRepository) {
         repository = repo
     }
@@ -47,6 +50,9 @@ class AddEditTaskViewModel : ViewModel() {
     fun updateLocation(newLocation: String) { location = newLocation }
     fun updatePeriodicity(newPeriodicity: String) { periodicity = newPeriodicity }
     fun updatePriority(newPriority: String) { priority = newPriority }
+    fun updateEndTime(newEndTime: String) {
+        endTime = newEndTime
+    }
 
     fun loadTask(taskId: Long) {
         viewModelScope.launch {
@@ -59,6 +65,7 @@ class AddEditTaskViewModel : ViewModel() {
                 location = task.location
                 periodicity = task.periodicity
                 priority = task.priority
+                endTime = task.endTime ?: ""
             }
         }
     }
@@ -73,6 +80,7 @@ class AddEditTaskViewModel : ViewModel() {
                 description = description,
                 category = category,
                 time = time,
+                endTime = endTime.ifBlank { null },
                 location = location,
                 periodicity = periodicity,
                 priority = priority
@@ -93,6 +101,7 @@ class AddEditTaskViewModel : ViewModel() {
         description = ""
         category = "Travail"
         time = "08:00 AM"
+        endTime = ""
         location = ""
         periodicity = "Une fois"
         priority = "Moyenne"

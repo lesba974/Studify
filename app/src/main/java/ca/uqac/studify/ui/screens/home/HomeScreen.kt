@@ -22,7 +22,7 @@ import ca.uqac.studify.ui.components.TaskCard
 import ca.uqac.studify.ui.components.DateDuJourText
 
 @Composable
-fun StudifyScreen(
+fun HomeScreen(
     viewModel: HomeViewModel,
     onAddTaskClick: () -> Unit = {},
     onTaskClick: (Long) -> Unit = {}

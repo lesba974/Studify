@@ -111,7 +111,7 @@ fun AddEditTaskScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 var expandedCategory by remember { mutableStateOf(false) }
-                val categories = listOf("Travail", "Santé", "Loisir", "Personnel")
+                val categories = listOf("Cours", "Révision", "Pause", "Sport")
 
                 ExposedDropdownMenuBox(
                     expanded = expandedCategory,
@@ -173,9 +173,18 @@ fun AddEditTaskScreen(
 
                 FormField(
                     label = "Horaire de fin",
-                    value = "",
-                    onValueChange = { },
+                    value = viewModel.endTime,
+                    onValueChange = { viewModel.updateEndTime(it) },
                     placeholder = "09:00 AM"
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                FormField(
+                    label = "Localisation",
+                    value = viewModel.location,
+                    onValueChange = { viewModel.updateLocation(it) },
+                    placeholder = "Ex: UQAC, À la maison"
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))

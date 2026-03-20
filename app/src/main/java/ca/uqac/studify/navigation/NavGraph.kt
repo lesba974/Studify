@@ -7,9 +7,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import ca.uqac.studify.ui.screens.addEdit.AddEditTaskScreen
-import ca.uqac.studify.ui.screens.home.StudifyScreen
 import ca.uqac.studify.ui.screens.home.HomeViewModel
 import ca.uqac.studify.ui.screens.addEdit.AddEditTaskViewModel
+import ca.uqac.studify.ui.screens.home.HomeScreen
 
 sealed class Screen(val route: String) {
     object Home : Screen("home")
@@ -32,7 +32,7 @@ fun NavGraph(
         startDestination = Screen.Home.route
     ) {
         composable(Screen.Home.route) {
-            StudifyScreen(
+            HomeScreen(
                 viewModel = homeViewModel,
                 onAddTaskClick = {
                     addEditViewModel.resetForm()

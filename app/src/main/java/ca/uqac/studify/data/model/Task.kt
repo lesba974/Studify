@@ -19,6 +19,7 @@ data class Task(
     val location: String,
     val periodicity: String = "Une fois",
     val priority: String = "Moyenne",
+    val endTime: String? = null,
 
     @Ignore
     val icon: ImageVector = Icons.Default.Bookmark
@@ -31,16 +32,17 @@ data class Task(
         time: String,
         location: String,
         periodicity: String,
-        priority: String
-    ) : this(id, title, description, category, time, location, periodicity, priority, Icons.Default.Bookmark)
+        priority: String,
+        endTime: String?
+    ) : this(id, title, description, category, time, location, periodicity, priority, endTime, Icons.Default.Bookmark)
 }
 
 fun Task.getIcon(): ImageVector {
-    return when {
-        title.contains("Cours", ignoreCase = true) -> Icons.Default.Notifications
-        title.contains("Révision", ignoreCase = true) -> Icons.Default.Bookmark
-        title.contains("Pause", ignoreCase = true) -> Icons.Default.Coffee
-        title.contains("Sport", ignoreCase = true) -> Icons.Default.FitnessCenter
+    return when (category) {
+        "Cours" -> Icons.Default.School
+        "Révision" -> Icons.Default.AutoStories
+        "Pause" -> Icons.Default.Coffee
+        "Sport" -> Icons.Default.FitnessCenter
         else -> Icons.Default.Task
     }
 }

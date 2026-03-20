@@ -15,6 +15,8 @@ import androidx.compose.ui.unit.sp
 import ca.uqac.studify.data.model.Task
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Place
+import ca.uqac.studify.data.model.getIcon
+
 @Composable
 fun TaskCard(task: Task, onClick: () -> Unit = {}) {
     Card(
@@ -35,7 +37,7 @@ fun TaskCard(task: Task, onClick: () -> Unit = {}) {
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        imageVector = task.icon,
+                        imageVector = task.getIcon(),
                         contentDescription = null,
                         tint = Color.White,
                         modifier = Modifier.size(28.dp)
