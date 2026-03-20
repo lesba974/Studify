@@ -1,7 +1,6 @@
-package ca.uqac.studify.ui.screens
+package ca.uqac.studify.ui.screens.home
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,19 +17,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ca.uqac.studify.model.Task
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ca.uqac.studify.ui.components.TaskCard
-import ca.uqac.studify.data.RoutineUtils
 import ca.uqac.studify.ui.components.DateDuJourText
 
 @Composable
-fun StudifyScreen() {
-    val allTasks = RoutineUtils.getMockRoutines()
+fun StudifyScreen(
+    viewModel: HomeViewModel,
+    onAddTaskClick: () -> Unit = {},
+    onTaskClick: (Long) -> Unit = {}
+) {
+    val tasks by viewModel.tasks.collectAsStateWithLifecycle()
 
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { /* Action ajouter */ },
+                onClick = onAddTaskClick,
                 containerColor = Color.White,
                 shape = CircleShape,
                 modifier = Modifier.size(72.dp)
@@ -55,7 +57,6 @@ fun StudifyScreen() {
                     )
                 )
         ) {
-            // COLONNE PRINCIPALE (Header + Liste)
             Column(modifier = Modifier.fillMaxSize()) {
 
                 Surface(
@@ -80,18 +81,54 @@ fun StudifyScreen() {
                     }
                 }
 
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 20.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(
-                        top = 28.dp,
-                        bottom = 100.dp
-                    )
-                ) {
-                    items(allTasks) { currentTask ->
-                        TaskCard(task = currentTask)
+                if (tasks.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "📋",
+                                fontSize = 64.sp
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "Aucune routine",
+                                color = Color.White,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Appuyez sur + pour créer votre première routine",
+                                color = Color.Gray,
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 20.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        contentPadding = PaddingValues(
+                            top = 28.dp,
+                            bottom = 100.dp
+                        )
+                    ) {
+                        items(
+                            items = tasks,
+                            key = { task -> task.id }
+                        ) { currentTask ->
+                            TaskCard(
+                                task = currentTask,
+                                onClick = { onTaskClick(currentTask.id) }
+                            )
+                        }
                     }
                 }
             }
