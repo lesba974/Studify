@@ -185,7 +185,11 @@ fun DetailScreen(
                                     InfoItem(
                                         icon = "🕐",
                                         label = "HORAIRE",
-                                        value = currentTask.time,
+                                        value = if (!currentTask.date.isNullOrBlank()) {
+                                            "${currentTask.date} à ${currentTask.time}"
+                                        } else {
+                                            currentTask.time
+                                        },
                                         modifier = Modifier.weight(1f)
                                     )
 

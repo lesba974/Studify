@@ -8,7 +8,7 @@ import ca.uqac.studify.data.model.Task
 
 @Database(
     entities = [Task::class],
-    version = 1,
+    version = 3,
     exportSchema = false
 )
 abstract class StudifyDatabase : RoomDatabase() {

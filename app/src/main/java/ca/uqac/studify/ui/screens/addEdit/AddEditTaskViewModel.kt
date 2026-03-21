@@ -39,6 +39,9 @@ class AddEditTaskViewModel : ViewModel() {
     var endTime by mutableStateOf("")
         private set
 
+    var date by mutableStateOf("")
+        private set
+
     fun setRepository(repo: TaskRepository) {
         repository = repo
     }
@@ -53,6 +56,9 @@ class AddEditTaskViewModel : ViewModel() {
     fun updateEndTime(newEndTime: String) {
         endTime = newEndTime
     }
+    fun updateDate(newDate: String) {
+        date = newDate
+    }
 
     fun loadTask(taskId: Long) {
         viewModelScope.launch {
@@ -66,6 +72,7 @@ class AddEditTaskViewModel : ViewModel() {
                 periodicity = task.periodicity
                 priority = task.priority
                 endTime = task.endTime ?: ""
+                date = task.date ?: ""
             }
         }
     }
@@ -82,6 +89,7 @@ class AddEditTaskViewModel : ViewModel() {
                 time = time,
                 endTime = endTime.ifBlank { null },
                 location = location,
+                date = date.ifBlank { null },
                 periodicity = periodicity,
                 priority = priority
             )
@@ -106,5 +114,6 @@ class AddEditTaskViewModel : ViewModel() {
         periodicity = "Une fois"
         priority = "Moyenne"
         currentTaskId = null
+        date = ""
     }
 }

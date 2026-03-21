@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,6 +31,9 @@ fun AddEditTaskScreen(
             viewModel.resetForm()
         }
     }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -62,6 +66,15 @@ fun AddEditTaskScreen(
                     containerColor = Color(0xFF4B39EF)
                 )
             )
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = Color(0xFFFF3B30),
+                    contentColor = Color.White
+                )
+            }
         },
         containerColor = Color.Transparent
     ) { paddingValues ->
@@ -159,6 +172,15 @@ fun AddEditTaskScreen(
                         }
                     }
                 }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                FormField(
+                    label = "Date",
+                    value = viewModel.date,
+                    onValueChange = { viewModel.updateDate(it) },
+                    placeholder = "Ex: Lundi 16 février 2026"
+                )
 
                 Spacer(modifier = Modifier.height(20.dp))
 
@@ -285,8 +307,17 @@ fun AddEditTaskScreen(
 
                 Button(
                     onClick = {
-                        viewModel.saveTask {
-                            onNavigateBack()
+                        if (viewModel.title.isBlank()) {
+                            scope.launch {
+                                snackbarHostState.showSnackbar(
+                                    message = "⚠️ Le nom de la routine est obligatoire",
+                                    duration = SnackbarDuration.Short
+                                )
+                            }
+                        } else {
+                            viewModel.saveTask {
+                                onNavigateBack()
+                            }
                         }
                     },
                     modifier = Modifier

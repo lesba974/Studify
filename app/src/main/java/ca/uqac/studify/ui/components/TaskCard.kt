@@ -29,7 +29,6 @@ fun TaskCard(task: Task, onClick: () -> Unit = {}) {
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1E243D))
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -51,14 +50,16 @@ fun TaskCard(task: Task, onClick: () -> Unit = {}) {
                     )
                 }
 
-                // Badge de catégorie
                 Surface(
-                    color = if (task.category == "Travail") Color(0xFF4A4B6E) else Color(0xFF1B4D3E),
-                    shape = RoundedCornerShape(20.dp)
+                    color = if (task.category == "Révision" || task.category == "Cours") Color(0xFF4A4B6E)
+                    else if (task.category == "Santé" || task.category == "Sport") Color(0xFF1B4D3E)
+                    else Color(0xFF4D3A1B),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     Text(
                         text = task.category,
-                        color = if (task.category == "Travail") Color.White else Color(0xFF4ADE80),
+                        color = if (task.category == "Révision" || task.category == "Cours") Color.White
+                        else Color(0xFF4ADE80),
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold
@@ -70,43 +71,52 @@ fun TaskCard(task: Task, onClick: () -> Unit = {}) {
                 text = task.description,
                 color = Color.LightGray,
                 fontSize = 15.sp,
-                lineHeight = 20.sp,
                 modifier = Modifier.padding(start = 42.dp, top = 8.dp, bottom = 14.dp)
             )
 
             Row(
-                modifier = Modifier
-                    .padding(start = 42.dp)
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.Schedule,
                         contentDescription = null,
-                        tint = Color.Gray,
+                        tint = Color.LightGray,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = task.time,
-                        color = Color.Gray,
-                        fontSize = 13.sp
-                    )
+                    Column {
+                        if (!task.date.isNullOrBlank()) {
+                            Text(
+                                text = task.date,
+                                color = Color.White,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                        Text(
+                            text = task.time,
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.Place,
                         contentDescription = null,
-                        tint = Color.Gray,
+                        tint = Color.LightGray,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = task.location,
-                        color = Color.Gray,
-                        fontSize = 13.sp
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }
