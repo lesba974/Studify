@@ -14,6 +14,7 @@ import ca.uqac.studify.data.local.StudifyDatabase
 import ca.uqac.studify.data.repository.TaskRepository
 import ca.uqac.studify.navigation.NavGraph
 import ca.uqac.studify.ui.screens.addEdit.AddEditTaskViewModel
+import ca.uqac.studify.ui.screens.detail.DetailViewModel
 import ca.uqac.studify.ui.screens.home.HomeViewModel
 import ca.uqac.studify.ui.theme.StudifyTheme
 
@@ -35,14 +36,17 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
 
                     val homeViewModel: HomeViewModel = viewModel()
+                    val detailViewModel: DetailViewModel = viewModel()
                     val addEditViewModel: AddEditTaskViewModel = viewModel()
 
                     homeViewModel.setRepository(repository)
+                    detailViewModel.setRepository(repository)
                     addEditViewModel.setRepository(repository)
 
                     NavGraph(
                         navController = navController,
                         homeViewModel = homeViewModel,
+                        detailViewModel = detailViewModel,
                         addEditViewModel = addEditViewModel
                     )
                 }

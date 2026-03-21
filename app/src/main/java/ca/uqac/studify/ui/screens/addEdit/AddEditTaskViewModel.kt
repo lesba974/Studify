@@ -19,7 +19,7 @@ class AddEditTaskViewModel : ViewModel() {
     var description by mutableStateOf("")
         private set
 
-    var category by mutableStateOf("Travail")
+    var category by mutableStateOf("Cours")
         private set
 
     var time by mutableStateOf("08:00 AM")
@@ -99,7 +99,7 @@ class AddEditTaskViewModel : ViewModel() {
     fun resetForm() {
         title = ""
         description = ""
-        category = "Travail"
+        category = "Cours"
         time = "08:00 AM"
         endTime = ""
         location = ""
