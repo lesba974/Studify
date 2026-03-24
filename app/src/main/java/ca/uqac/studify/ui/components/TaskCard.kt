@@ -1,6 +1,7 @@
 package ca.uqac.studify.ui.components
 import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,6 +17,7 @@ import ca.uqac.studify.data.model.Task
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Place
 import ca.uqac.studify.data.model.getIcon
+import androidx.compose.foundation.shape.CircleShape
 
 @Composable
 fun TaskCard(task: Task, onClick: () -> Unit = {}) {
@@ -35,6 +37,21 @@ fun TaskCard(task: Task, onClick: () -> Unit = {}) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(15.dp)
+                            .background(
+                                color = when (task.priority) {
+                                    "Élevée" -> Color(0xFFDC2626)
+                                    "Moyenne" -> Color(0xFFF59E0B)
+                                    "Faible" -> Color(0xFF10B981)
+                                    else -> Color.Transparent
+                                },
+                                shape = CircleShape
+                            )
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+
                     Icon(
                         imageVector = task.getIcon(),
                         contentDescription = null,
@@ -51,15 +68,17 @@ fun TaskCard(task: Task, onClick: () -> Unit = {}) {
                 }
 
                 Surface(
-                    color = if (task.category == "Révision" || task.category == "Cours") Color(0xFF4A4B6E)
-                    else if (task.category == "Santé" || task.category == "Sport") Color(0xFF1B4D3E)
-                    else Color(0xFF4D3A1B),
+                    color = when (task.category) {
+                        "Révision" -> Color(0xFF4A4B6E)
+                        "Cours" -> Color(0xFF6E4A4A)
+                        "Sport" -> Color(0xFF1B4D3E)
+                        else -> Color(0xFF4D3A1B)
+                    },
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Text(
                         text = task.category,
-                        color = if (task.category == "Révision" || task.category == "Cours") Color.White
-                        else Color(0xFF4ADE80),
+                        color = Color.White,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold
