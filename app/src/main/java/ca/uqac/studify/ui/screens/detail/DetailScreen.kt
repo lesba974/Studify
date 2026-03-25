@@ -186,7 +186,7 @@ fun DetailScreen(
                                         icon = "🕐",
                                         label = "HORAIRE",
                                         value = if (!currentTask.date.isNullOrBlank()) {
-                                            "${currentTask.date} à ${currentTask.time}"
+                                            "${formatDateToFrench(currentTask.date)}\n${currentTask.time}"
                                         } else {
                                             currentTask.time
                                         },

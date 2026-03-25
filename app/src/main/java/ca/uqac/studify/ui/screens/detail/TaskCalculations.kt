@@ -3,6 +3,7 @@ package ca.uqac.studify.ui.screens.detail
 import ca.uqac.studify.data.model.Task
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
 import java.util.Locale
 
@@ -12,43 +13,62 @@ data class TaskCalculations(
 )
 
 fun calculateNextOccurrence(task: Task): TaskCalculations? {
-    if (task.periodicity == "Une fois") {
-        return null
-    }
+    if (task.periodicity == "Une fois") return null
 
-    val now = LocalDate.now()
-    val nextDate = when (task.periodicity) {
-        "Quotidien" -> now.plusDays(1)
-        "Hebdomadaire" -> now.plusWeeks(1)
-        "Mensuel" -> now.plusMonths(1)
-        else -> return null
-    }
+    if (task.date.isNullOrBlank()) return null
 
-    val formatter = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRENCH)
-    val formattedDate = nextDate.format(formatter).replaceFirstChar { it.uppercase() }
+    try {
+        val routineDate = LocalDate.parse(task.date)
+        val today = LocalDate.now()
 
-    val timeStr = when {
-        task.time.contains(":") -> {
+        fun getNext(date: LocalDate): LocalDate {
+            return when (task.periodicity) {
+                "Quotidien" -> date.plusDays(1)
+                "Hebdomadaire" -> date.plusWeeks(1)
+                "Mensuel" -> date.plusMonths(1)
+                else -> date
+            }
+        }
+
+        val nextDate = if (routineDate.isAfter(today)) {
+            getNext(routineDate)
+        } else {
+            var tempDate = routineDate
+            while (!tempDate.isAfter(today)) {
+                tempDate = getNext(tempDate)
+            }
+            tempDate
+        }
+
+        val formatter = DateTimeFormatter.ofPattern("EEEE d MMMM yyyy", Locale.FRENCH)
+        val formattedDate = nextDate.format(formatter)
+            .replaceFirstChar { it.uppercase() }
+
+        val timeStr = if (task.time.contains(":")) {
             val parts = task.time.split(" ")
             parts.firstOrNull { it.contains(":") } ?: task.time
+        } else {
+            task.time
         }
-        else -> task.time
-    }
 
-    val daysUntil = ChronoUnit.DAYS.between(now, nextDate)
-    val timeRemaining = when {
-        daysUntil == 0L -> "Aujourd'hui"
-        daysUntil == 1L -> "Demain"
-        daysUntil < 7 -> "Dans $daysUntil jours"
-        daysUntil < 14 -> "Dans 1 semaine"
-        daysUntil < 30 -> "Dans ${daysUntil / 7} semaines"
-        else -> "Dans ${daysUntil / 30} mois"
-    }
+        val daysUntil = ChronoUnit.DAYS.between(today, nextDate)
+        val timeRemaining = when {
+            daysUntil == 0L -> "Aujourd'hui"
+            daysUntil == 1L -> "Demain"
+            daysUntil < 7 -> "Dans $daysUntil jours"
+            daysUntil < 14 -> "Dans 1 semaine"
+            daysUntil < 30 -> "Dans ${daysUntil / 7} semaines"
+            else -> "Dans ${daysUntil / 30} mois"
+        }
 
-    return TaskCalculations(
-        date = "$formattedDate à $timeStr",
-        timeRemaining = timeRemaining
-    )
+        return TaskCalculations(
+            date = "$formattedDate à $timeStr",
+            timeRemaining = timeRemaining
+        )
+
+    } catch (e: DateTimeParseException) {
+        return null
+    }
 }
 
 fun calculateDuration(startTime: String, endTime: String?): String {
@@ -80,4 +100,20 @@ fun calculateDuration(startTime: String, endTime: String?): String {
     } catch (e: Exception) {
         return "Non définie"
     }
+}
+
+fun formatDateToFrench(isoDate: String?): String {
+    if (isoDate.isNullOrBlank()) return ""
+
+    try {
+        val date = LocalDate.parse(isoDate)
+        val formatter = DateTimeFormatter.ofPattern("EEEE d MMMM yyyy", Locale.FRENCH)
+        return date.format(formatter).replaceFirstChar { it.uppercase() }
+    } catch (e: DateTimeParseException) {
+        return isoDate
+    }
+}
+
+fun getTodayISO(): String {
+    return LocalDate.now().toString()
 }

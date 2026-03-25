@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Place
 import ca.uqac.studify.data.model.getIcon
 import androidx.compose.foundation.shape.CircleShape
+import ca.uqac.studify.ui.screens.detail.formatDateToFrench
 
 @Composable
 fun TaskCard(task: Task, onClick: () -> Unit = {}) {
@@ -108,7 +109,7 @@ fun TaskCard(task: Task, onClick: () -> Unit = {}) {
                     Column {
                         if (!task.date.isNullOrBlank()) {
                             Text(
-                                text = task.date,
+                                text = formatDateToFrench(task.date),
                                 color = Color.White,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.SemiBold

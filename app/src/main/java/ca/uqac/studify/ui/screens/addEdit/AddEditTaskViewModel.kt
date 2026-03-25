@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import ca.uqac.studify.data.model.Task
 import ca.uqac.studify.data.repository.TaskRepository
 import kotlinx.coroutines.launch
+import ca.uqac.studify.ui.screens.detail.getTodayISO
 
 class AddEditTaskViewModel : ViewModel() {
 
@@ -39,7 +40,7 @@ class AddEditTaskViewModel : ViewModel() {
     var endTime by mutableStateOf("")
         private set
 
-    var date by mutableStateOf("")
+    var date by mutableStateOf(getTodayISO())
         private set
 
     fun setRepository(repo: TaskRepository) {
@@ -114,6 +115,6 @@ class AddEditTaskViewModel : ViewModel() {
         periodicity = "Une fois"
         priority = "Moyenne"
         currentTaskId = null
-        date = ""
+        date = getTodayISO()
     }
 }

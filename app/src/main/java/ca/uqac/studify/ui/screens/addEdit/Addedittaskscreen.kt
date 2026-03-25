@@ -1,12 +1,14 @@
 package ca.uqac.studify.ui.screens.addEdit
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -15,7 +17,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ca.uqac.studify.ui.screens.detail.formatDateToFrench
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -175,12 +179,59 @@ fun AddEditTaskScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                FormField(
-                    label = "Date",
-                    value = viewModel.date,
-                    onValueChange = { viewModel.updateDate(it) },
-                    placeholder = "Ex: Lundi 16 février 2026"
-                )
+                var showDatePicker by remember { mutableStateOf(false) }
+
+                Column {
+                    Text(
+                        text = "Date",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = formatDateToFrench(viewModel.date),
+                        onValueChange = {},
+                        readOnly = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showDatePicker = true },
+                        placeholder = { Text("Sélectionner une date", color = Color.Gray) },
+                        trailingIcon = {
+                            IconButton(onClick = { showDatePicker = true }) {
+                                Icon(
+                                    imageVector = Icons.Default.CalendarToday,
+                                    contentDescription = "Choisir la date",
+                                    tint = Color.White
+                                )
+                            }
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = Color(0xFF4B39EF),
+                            unfocusedBorderColor = Color(0xFF3D4566),
+                            focusedContainerColor = Color(0xFF2A3150),
+                            unfocusedContainerColor = Color(0xFF2A3150)
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                }
+
+                if (showDatePicker) {
+                    DatePickerDialog(
+                        onDismiss = { showDatePicker = false },
+                        onConfirm = { selectedDateMillis ->
+                            selectedDateMillis?.let {
+                                val instant = java.time.Instant.ofEpochMilli(it)
+                                val selectedDate = instant.atZone(java.time.ZoneId.systemDefault()).toLocalDate()
+                                viewModel.updateDate(selectedDate.toString())
+                            }
+                            showDatePicker = false
+                        }
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
@@ -403,6 +454,71 @@ fun PriorityButton(
             text = label,
             fontSize = 14.sp,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DatePickerDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (Long?) -> Unit
+) {
+    val today = Calendar.getInstance().apply {
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }.timeInMillis
+
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = today,
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                return utcTimeMillis >= today
+            }
+        }
+    )
+
+    DatePickerDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = {
+                onConfirm(datePickerState.selectedDateMillis)
+            }) {
+                Text("OK", color = Color(0xFF6C63FF), fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Annuler", color = Color.Gray)
+            }
+        },
+        colors = DatePickerDefaults.colors(
+            containerColor = Color.White
+        )
+    ) {
+        DatePicker(
+            state = datePickerState,
+            colors = DatePickerDefaults.colors(
+                containerColor = Color.White,
+
+                dayContentColor = Color.Black,
+                selectedDayContentColor = Color.White,
+                selectedDayContainerColor = Color(0xFF6C63FF),
+
+                todayContentColor = Color(0xFF6C63FF),
+                todayDateBorderColor = Color(0xFF6C63FF),
+
+                titleContentColor = Color.Black,
+                headlineContentColor = Color.Black,
+
+                navigationContentColor = Color(0xFF6C63FF),
+
+                disabledDayContentColor = Color.Gray,
+
+                weekdayContentColor = Color.DarkGray
+            )
         )
     }
 }
