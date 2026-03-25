@@ -7,6 +7,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
@@ -65,7 +66,7 @@ fun AddEditTaskScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Retour",
                             tint = Color.White
                         )
@@ -145,7 +146,7 @@ fun AddEditTaskScreen(
                         readOnly = true,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .menuAnchor(),
+                            .menuAnchor(MenuAnchorType.PrimaryEditable),
                         trailingIcon = {
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCategory)
                         },
@@ -346,7 +347,7 @@ fun AddEditTaskScreen(
 
                                 if (selectedTime.isBefore(startTime)) {
 
-                                    showEndTimePicker = false 
+                                    showEndTimePicker = false
 
                                     scope.launch {
                                         snackbarHostState.showSnackbar(
@@ -396,7 +397,7 @@ fun AddEditTaskScreen(
                         readOnly = true,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .menuAnchor(),
+                            .menuAnchor(MenuAnchorType.PrimaryEditable),
                         trailingIcon = {
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedPeriodicity)
                         },
