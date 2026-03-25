@@ -23,7 +23,7 @@ class AddEditTaskViewModel : ViewModel() {
     var category by mutableStateOf("Cours")
         private set
 
-    var time by mutableStateOf("08:00 AM")
+    var time by mutableStateOf("08:00")
         private set
 
     var location by mutableStateOf("")
@@ -109,7 +109,7 @@ class AddEditTaskViewModel : ViewModel() {
         title = ""
         description = ""
         category = "Cours"
-        time = "08:00 AM"
+        time = "08:00"
         endTime = ""
         location = ""
         periodicity = "Une fois"

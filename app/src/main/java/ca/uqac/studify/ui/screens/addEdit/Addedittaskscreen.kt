@@ -7,6 +7,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.*
@@ -19,6 +20,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ca.uqac.studify.ui.screens.detail.formatDateToFrench
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -235,21 +240,129 @@ fun AddEditTaskScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                FormField(
-                    label = "Horaire de début",
-                    value = viewModel.time,
-                    onValueChange = { viewModel.updateTime(it) },
-                    placeholder = "08:00 AM"
-                )
+                var showTimePicker by remember { mutableStateOf(false) }
+
+                Column {
+                    Text(
+                        text = "Horaire de début",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = viewModel.time,
+                        onValueChange = {},
+                        readOnly = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showTimePicker = true },
+                        placeholder = { Text("Sélectionner une heure", color = Color.Gray) },
+                        trailingIcon = {
+                            IconButton(onClick = { showTimePicker = true }) {
+                                Icon(
+                                    imageVector = Icons.Default.AccessTime,
+                                    contentDescription = "Choisir l'heure",
+                                    tint = Color.White
+                                )
+                            }
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = Color(0xFF4B39EF),
+                            unfocusedBorderColor = Color(0xFF3D4566),
+                            focusedContainerColor = Color(0xFF2A3150),
+                            unfocusedContainerColor = Color(0xFF2A3150)
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                }
+
+                if (showTimePicker) {
+                    TimePickerDialog(
+                        onDismiss = { showTimePicker = false },
+                        onConfirm = { hour, minute ->
+                            val formatted = String.format("%02d:%02d", hour, minute)
+                            viewModel.updateTime(formatted)
+                            showTimePicker = false
+                        }
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                FormField(
-                    label = "Horaire de fin",
-                    value = viewModel.endTime,
-                    onValueChange = { viewModel.updateEndTime(it) },
-                    placeholder = "09:00 AM"
-                )
+                var showEndTimePicker by remember { mutableStateOf(false) }
+
+                Column {
+                    Text(
+                        text = "Horaire de fin",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = viewModel.endTime,
+                        onValueChange = {},
+                        readOnly = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showEndTimePicker = true },
+                        placeholder = { Text("Sélectionner une heure", color = Color.Gray) },
+                        trailingIcon = {
+                            IconButton(onClick = { showEndTimePicker = true }) {
+                                Icon(
+                                    imageVector = Icons.Default.AccessTime,
+                                    contentDescription = "Choisir l'heure de fin",
+                                    tint = Color.White
+                                )
+                            }
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = Color(0xFF4B39EF),
+                            unfocusedBorderColor = Color(0xFF3D4566),
+                            focusedContainerColor = Color(0xFF2A3150),
+                            unfocusedContainerColor = Color(0xFF2A3150)
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                }
+
+                if (showEndTimePicker) {
+                    TimePickerDialog(
+                        onDismiss = { showEndTimePicker = false },
+                        onConfirm = { hour, minute ->
+
+                            val formatter = DateTimeFormatter.ofPattern("HH:mm")
+                            val selectedTime = LocalTime.of(hour, minute)
+
+                            if (viewModel.time.isNotBlank()) {
+                                val startTime = LocalTime.parse(viewModel.time, formatter)
+
+                                if (selectedTime.isBefore(startTime)) {
+
+                                    showEndTimePicker = false 
+
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            "⛔ L'heure de fin doit être après l'heure de début"
+                                        )
+                                    }
+
+                                    return@TimePickerDialog
+                                }
+                            }
+
+                            viewModel.updateEndTime(selectedTime.format(formatter))
+                            showEndTimePicker = false
+                        }
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
@@ -521,4 +634,39 @@ fun DatePickerDialog(
             )
         )
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TimePickerDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (Int, Int) -> Unit
+) {
+    val timePickerState = rememberTimePickerState(
+        initialHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY),
+        initialMinute = Calendar.getInstance().get(Calendar.MINUTE),
+        is24Hour = true
+    )
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = {
+                onConfirm(timePickerState.hour, timePickerState.minute)
+            }) {
+                Text("OK", color = Color(0xFF6C63FF), fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Annuler", color = Color.Gray)
+            }
+        },
+        containerColor = Color.White,
+        text = {
+            TimePicker(
+                state = timePickerState
+            )
+        }
+    )
 }
