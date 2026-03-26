@@ -117,3 +117,46 @@ fun formatDateToFrench(isoDate: String?): String {
 fun getTodayISO(): String {
     return LocalDate.now().toString()
 }
+
+fun isTaskActive(task: Task): Boolean {
+    if (task.date.isNullOrBlank()) return true
+
+    try {
+        val taskDate = LocalDate.parse(task.date)
+        val today = LocalDate.now()
+
+        return when (task.periodicity) {
+            "Une fois" -> !taskDate.isBefore(today)
+            else -> true
+        }
+    } catch (e: DateTimeParseException) {
+        return true
+    }
+}
+
+fun getUpdatedTaskIfNeeded(task: Task): Task? {
+    if (task.periodicity == "Une fois") return null
+    if (task.date.isNullOrBlank()) return null
+
+    try {
+        val taskDate = LocalDate.parse(task.date)
+        val today = LocalDate.now()
+
+        if (!taskDate.isBefore(today)) return null
+
+        var nextDate = taskDate
+        while (nextDate.isBefore(today)) {
+            nextDate = when (task.periodicity) {
+                "Quotidien" -> nextDate.plusDays(1)
+                "Hebdomadaire" -> nextDate.plusWeeks(1)
+                "Mensuel" -> nextDate.plusMonths(1)
+                else -> return null
+            }
+        }
+
+        return task.copy(date = nextDate.toString())
+
+    } catch (e: DateTimeParseException) {
+        return null
+    }
+}

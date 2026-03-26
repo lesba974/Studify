@@ -2,7 +2,9 @@ package ca.uqac.studify.data.repository
 
 import ca.uqac.studify.data.local.TaskDao
 import ca.uqac.studify.data.model.Task
+import ca.uqac.studify.ui.screens.detail.getUpdatedTaskIfNeeded
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 
 class TaskRepository(private val taskDao: TaskDao) {
 
@@ -26,5 +28,16 @@ class TaskRepository(private val taskDao: TaskDao) {
 
     suspend fun deleteTaskById(id: Long) {
         taskDao.deleteTaskById(id)
+    }
+
+    suspend fun updateTasksToNextOccurrence() {
+        val allTasksList = taskDao.getAllTasks().first() 
+
+        allTasksList.forEach { task ->
+            val updatedTask = getUpdatedTaskIfNeeded(task)
+            if (updatedTask != null) {
+                taskDao.updateTask(updatedTask)
+            }
+        }
     }
 }

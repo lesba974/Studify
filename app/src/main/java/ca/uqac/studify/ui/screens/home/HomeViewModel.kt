@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ca.uqac.studify.data.model.Task
 import ca.uqac.studify.data.repository.TaskRepository
+import ca.uqac.studify.ui.screens.detail.isTaskActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,7 +25,7 @@ class HomeViewModel : ViewModel() {
     private fun loadTasks() {
         viewModelScope.launch {
             repository.allTasks.collect { taskList ->
-                _tasks.value = taskList
+                _tasks.value = taskList.filter { isTaskActive(it) }
             }
         }
     }

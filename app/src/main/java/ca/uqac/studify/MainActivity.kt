@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import ca.uqac.studify.data.local.StudifyDatabase
@@ -17,6 +18,7 @@ import ca.uqac.studify.ui.screens.addEdit.AddEditTaskViewModel
 import ca.uqac.studify.ui.screens.detail.DetailViewModel
 import ca.uqac.studify.ui.screens.home.HomeViewModel
 import ca.uqac.studify.ui.theme.StudifyTheme
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,6 +28,10 @@ class MainActivity : ComponentActivity() {
 
         val database = StudifyDatabase.getDatabase(applicationContext)
         val repository = TaskRepository(database.taskDao())
+
+        lifecycleScope.launch {
+            repository.updateTasksToNextOccurrence()
+        }
 
         setContent {
             StudifyTheme {
