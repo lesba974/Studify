@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
 import java.util.Locale
+import java.time.LocalTime
 
 data class TaskCalculations(
     val date: String,
@@ -123,10 +124,30 @@ fun isTaskActive(task: Task): Boolean {
 
     try {
         val taskDate = LocalDate.parse(task.date)
-        val today = LocalDate.now()
+        val now = LocalDate.now()
+        val currentTime = LocalTime.now()
+
+        val taskTimeStr = when {
+            task.time.contains(":") -> {
+                val parts = task.time.split(" ")
+                parts.firstOrNull { it.contains(":") } ?: task.time
+            }
+            else -> task.time
+        }
+
+        val taskTime = try {
+            val timeParts = taskTimeStr.split(":")
+            val hour = timeParts[0].toIntOrNull() ?: 8
+            val minute = timeParts.getOrNull(1)?.take(2)?.toIntOrNull() ?: 0
+            LocalTime.of(hour, minute)
+        } catch (e: Exception) {
+            LocalTime.of(8, 0)
+        }
 
         return when (task.periodicity) {
-            "Une fois" -> !taskDate.isBefore(today)
+            "Une fois" -> {
+                taskDate.isAfter(now) || (taskDate.isEqual(now) && !taskTime.isBefore(currentTime))
+            }
             else -> true
         }
     } catch (e: DateTimeParseException) {
@@ -140,12 +161,37 @@ fun getUpdatedTaskIfNeeded(task: Task): Task? {
 
     try {
         val taskDate = LocalDate.parse(task.date)
-        val today = LocalDate.now()
+        val now = LocalDate.now()
+        val currentTime = LocalTime.now()
 
-        if (!taskDate.isBefore(today)) return null
+        val taskTimeStr = when {
+            task.time.contains(":") -> {
+                val parts = task.time.split(" ")
+                parts.firstOrNull { it.contains(":") } ?: task.time
+            }
+            else -> task.time
+        }
+
+        val taskTime = try {
+            val timeParts = taskTimeStr.split(":")
+            val hour = timeParts[0].toIntOrNull() ?: 8
+            val minute = timeParts.getOrNull(1)?.take(2)?.toIntOrNull() ?: 0
+            LocalTime.of(hour, minute)
+        } catch (e: Exception) {
+            LocalTime.of(8, 0)
+        }
+
+        val isTaskPassed = when {
+            taskDate.isBefore(now) -> true // Date passée
+            taskDate.isEqual(now) && taskTime.isBefore(currentTime) -> true // Même jour mais heure passée
+            else -> false
+        }
+
+        if (!isTaskPassed) return null
 
         var nextDate = taskDate
-        while (nextDate.isBefore(today)) {
+        while (nextDate.isBefore(now) ||
+            (nextDate.isEqual(now) && taskTime.isBefore(currentTime))) {
             nextDate = when (task.periodicity) {
                 "Quotidien" -> nextDate.plusDays(1)
                 "Hebdomadaire" -> nextDate.plusWeeks(1)

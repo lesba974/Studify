@@ -6,11 +6,11 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import ca.uqac.studify.ui.screens.HomeScreen
 import ca.uqac.studify.ui.screens.addEdit.AddEditTaskScreen
 import ca.uqac.studify.ui.screens.addEdit.AddEditTaskViewModel
 import ca.uqac.studify.ui.screens.detail.DetailScreen
 import ca.uqac.studify.ui.screens.detail.DetailViewModel
-import ca.uqac.studify.ui.screens.home.HomeScreen
 import ca.uqac.studify.ui.screens.home.HomeViewModel
 
 sealed class Screen(val route: String) {

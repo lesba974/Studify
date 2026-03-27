@@ -1,4 +1,4 @@
-package ca.uqac.studify.ui.screens.home
+package ca.uqac.studify.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ca.uqac.studify.ui.components.TaskCard
 import ca.uqac.studify.ui.components.DateDuJourText
+import ca.uqac.studify.ui.screens.home.HomeViewModel
 
 @Composable
 fun HomeScreen(
@@ -68,7 +70,7 @@ fun HomeScreen(
                     Column(
                         modifier = Modifier
                             .padding(horizontal = 28.dp)
-                            .padding(top = 60.dp, bottom = 36.dp)
+                            .padding(top = 60.dp, bottom = 20.dp)
                     ) {
                         Text(
                             text = "Studify",
@@ -78,6 +80,43 @@ fun HomeScreen(
                             letterSpacing = (-1).sp
                         )
                         DateDuJourText()
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        TabRow(
+                            selectedTabIndex = if (viewModel.showArchived) 1 else 0,
+                            containerColor = Color.Transparent,
+                            contentColor = Color.White,
+                            indicator = { tabPositions ->
+                                TabRowDefaults.SecondaryIndicator(
+                                    modifier = Modifier.tabIndicatorOffset(tabPositions[if (viewModel.showArchived) 1 else 0]),
+                                    color = Color.White
+                                )
+                            }
+                        ) {
+                            Tab(
+                                selected = !viewModel.showArchived,
+                                onClick = { viewModel.toggleShowArchived(false) },
+                                text = {
+                                    Text(
+                                        text = "Actives",
+                                        fontSize = 16.sp,
+                                        fontWeight = if (!viewModel.showArchived) FontWeight.Bold else FontWeight.Normal
+                                    )
+                                }
+                            )
+                            Tab(
+                                selected = viewModel.showArchived,
+                                onClick = { viewModel.toggleShowArchived(true) },
+                                text = {
+                                    Text(
+                                        text = "Archivées",
+                                        fontSize = 16.sp,
+                                        fontWeight = if (viewModel.showArchived) FontWeight.Bold else FontWeight.Normal
+                                    )
+                                }
+                            )
+                        }
                     }
                 }
 
@@ -91,19 +130,22 @@ fun HomeScreen(
                             verticalArrangement = Arrangement.Center
                         ) {
                             Text(
-                                text = "📋",
+                                text = if (viewModel.showArchived) "📦" else "📋",
                                 fontSize = 64.sp
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
-                                text = "Aucune routine",
+                                text = if (viewModel.showArchived) "Aucune routine archivée" else "Aucune routine active",
                                 color = Color.White,
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "Appuyez sur + pour créer votre première routine",
+                                text = if (viewModel.showArchived)
+                                    "Les routines terminées apparaîtront ici"
+                                else
+                                    "Appuyez sur + pour créer votre première routine",
                                 color = Color.Gray,
                                 fontSize = 14.sp
                             )
