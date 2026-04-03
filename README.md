@@ -66,10 +66,10 @@ git clone https://github.com/lesba974/Studify.git
 
 ## Équipe
 
-Fonseca Iliann
-Lesbarrères Emma
-Pedro Priscillya
-Slimani Fairouz
+- Fonseca Iliann
+- Lesbarrères Emma
+- Pedro Priscillya
+- Slimani Fairouz
 
 ## Licence
 
