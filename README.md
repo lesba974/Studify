@@ -10,10 +10,10 @@ Studify est une application Android développée en Kotlin avec Jetpack Compose 
 
 ### Gestion des routines
 - Création, modification et suppression de routines
-- Catégories personnalisées (Cours, Révision, Sport, Pause)
-- Niveaux de priorité (Faible, Moyenne, Élevée) avec indicateur visuel
-- Périodicité flexible (Une fois, Quotidien, Hebdomadaire, Mensuel)
-- Gestion des horaires (début, fin, durée calculée)
+- Catégories personnalisées 
+- Niveaux de priorité avec indicateur visuel
+- Périodicité flexible 
+- Gestion des horaires 
 - Localisation associée à chaque routine
 - Duplication de routines existantes
 
