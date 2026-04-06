@@ -11,43 +11,42 @@ import ca.uqac.studify.ui.screens.addEdit.AddEditTaskScreen
 import ca.uqac.studify.ui.screens.addEdit.AddEditTaskViewModel
 import ca.uqac.studify.ui.screens.detail.DetailScreen
 import ca.uqac.studify.ui.screens.detail.DetailViewModel
+import ca.uqac.studify.ui.screens.exam.AddExamScreen
+import ca.uqac.studify.ui.screens.exam.AddExamViewModel
 import ca.uqac.studify.ui.screens.home.HomeViewModel
-
-sealed class Screen(val route: String) {
-    object Home : Screen("home")
-
-    object Detail : Screen("detail/{taskId}") {
-        fun createRoute(taskId: Long): String = "detail/$taskId"
-    }
-
-    object AddEditTask : Screen("add_edit_task/{taskId}") {
-        fun createRoute(taskId: Long? = null): String {
-            return if (taskId == null) "add_edit_task/new"
-            else "add_edit_task/$taskId"
-        }
-    }
-}
+import ca.uqac.studify.ui.screens.schedule.AddCourseScreen
+import ca.uqac.studify.ui.screens.schedule.AddCourseViewModel
+import ca.uqac.studify.ui.screens.schedule.ImportScheduleScreen
+import ca.uqac.studify.ui.screens.schedule.ScheduleViewModel
 
 @Composable
 fun NavGraph(
     navController: NavHostController,
     homeViewModel: HomeViewModel,
     detailViewModel: DetailViewModel,
-    addEditViewModel: AddEditTaskViewModel
+    addEditTaskViewModel: AddEditTaskViewModel,
+    scheduleViewModel: ScheduleViewModel,
+    addCourseViewModel: AddCourseViewModel,
+    addExamViewModel: AddExamViewModel
 ) {
     NavHost(
         navController = navController,
-        startDestination = Screen.Home.route
+        startDestination = "home"
     ) {
-        composable(Screen.Home.route) {
+        composable("home") {
             HomeScreen(
                 viewModel = homeViewModel,
-                onAddTaskClick = {
-                    addEditViewModel.resetForm()
-                    navController.navigate(Screen.AddEditTask.createRoute())
-                },
                 onTaskClick = { taskId ->
-                    navController.navigate(Screen.Detail.createRoute(taskId))
+                    navController.navigate("detail/$taskId")
+                },
+                onAddTaskClick = {
+                    navController.navigate("addEdit/new")
+                },
+                onNavigateToSchedule = {
+                    navController.navigate("schedule")
+                },
+                onNavigateToAddExam = {
+                    navController.navigate("addExam/new")
                 }
             )
         }
@@ -55,43 +54,71 @@ fun NavGraph(
         composable(
             route = "detail/{taskId}",
             arguments = listOf(
-                navArgument("taskId") {
-                    type = NavType.LongType
-                }
+                navArgument("taskId") { type = NavType.LongType }
             )
         ) { backStackEntry ->
             val taskId = backStackEntry.arguments?.getLong("taskId") ?: 0L
-
             DetailScreen(
                 viewModel = detailViewModel,
                 taskId = taskId,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToEdit = { id ->
-                    navController.navigate(Screen.AddEditTask.createRoute(id))
+                    navController.navigate("addEdit/$id")
                 }
             )
         }
 
         composable(
-            route = "add_edit_task/{taskId}",
+            route = "addEdit/{taskId}",
             arguments = listOf(
-                navArgument("taskId") {
-                    type = NavType.StringType
-                }
+                navArgument("taskId") { type = NavType.StringType }
             )
         ) { backStackEntry ->
-            val taskIdString = backStackEntry.arguments?.getString("taskId")
-            val taskId = if (taskIdString == "new") null else taskIdString?.toLongOrNull()
-
-            if (taskId != null) {
-                addEditViewModel.loadTask(taskId)
-            } else {
-                addEditViewModel.resetForm()
-            }
-
+            val taskId = backStackEntry.arguments?.getString("taskId")
             AddEditTaskScreen(
-                viewModel = addEditViewModel,
-                taskId = taskId,
+                viewModel = addEditTaskViewModel,
+                taskId = if (taskId == "new") null else taskId?.toLongOrNull(),
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable("schedule") {
+            ImportScheduleScreen(
+                viewModel = scheduleViewModel,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToAddCourse = {
+                    navController.navigate("addCourse/new")
+                },
+                onNavigateToEditCourse = { courseId ->
+                    navController.navigate("addCourse/$courseId")
+                }
+            )
+        }
+
+        composable(
+            route = "addCourse/{courseId}",
+            arguments = listOf(
+                navArgument("courseId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val courseId = backStackEntry.arguments?.getString("courseId")
+            AddCourseScreen(
+                viewModel = addCourseViewModel,
+                courseId = if (courseId == "new") null else courseId?.toLongOrNull(),
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = "addExam/{examId}",
+            arguments = listOf(
+                navArgument("examId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val examId = backStackEntry.arguments?.getString("examId")
+            AddExamScreen(
+                viewModel = addExamViewModel,
+                examId = if (examId == "new") null else examId?.toLongOrNull(),
                 onNavigateBack = { navController.popBackStack() }
             )
         }
