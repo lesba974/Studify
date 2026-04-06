@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ca.uqac.studify.data.model.Task
@@ -35,9 +36,12 @@ fun TaskCard(task: Task, onClick: () -> Unit = {}) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Top
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
                     Box(
                         modifier = Modifier
                             .size(15.dp)
@@ -64,9 +68,14 @@ fun TaskCard(task: Task, onClick: () -> Unit = {}) {
                         text = task.title,
                         color = Color.White,
                         fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
                     )
                 }
+
+                Spacer(modifier = Modifier.width(8.dp))
 
                 Surface(
                     color = when (task.category) {
@@ -91,7 +100,9 @@ fun TaskCard(task: Task, onClick: () -> Unit = {}) {
                 text = task.description,
                 color = Color.LightGray,
                 fontSize = 15.sp,
-                modifier = Modifier.padding(start = 42.dp, top = 8.dp, bottom = 14.dp)
+                modifier = Modifier.padding(start = 42.dp, top = 8.dp, bottom = 14.dp),
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
             )
 
             Row(
@@ -136,7 +147,9 @@ fun TaskCard(task: Task, onClick: () -> Unit = {}) {
                         text = task.location,
                         color = Color.White,
                         fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }

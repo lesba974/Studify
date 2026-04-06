@@ -191,14 +191,18 @@ fun DetailScreen(
                                         } else {
                                             currentTask.time
                                         },
-                                        modifier = Modifier.weight(1f)
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .height(110.dp)
                                     )
 
                                     InfoItem(
                                         icon = "⏱️",
                                         label = "DURÉE",
                                         value = calculateDuration(currentTask.time, currentTask.endTime),
-                                        modifier = Modifier.weight(1f)
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .height(110.dp)
                                     )
                                 }
 
@@ -210,14 +214,18 @@ fun DetailScreen(
                                         icon = "📍",
                                         label = "LOCALISATION",
                                         value = currentTask.location.ifBlank { "Non défini" },
-                                        modifier = Modifier.weight(1f)
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .height(110.dp)
                                     )
 
                                     InfoItem(
                                         icon = "🔁",
                                         label = "RÉPÉTITION",
                                         value = currentTask.periodicity,
-                                        modifier = Modifier.weight(1f)
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .height(110.dp)
                                     )
                                 }
                             }
@@ -385,7 +393,10 @@ fun InfoItem(
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -403,8 +414,6 @@ fun InfoItem(
                     letterSpacing = 0.5.sp
                 )
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = value,

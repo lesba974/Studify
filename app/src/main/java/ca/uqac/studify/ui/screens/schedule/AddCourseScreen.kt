@@ -8,6 +8,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -29,6 +30,7 @@ fun AddCourseScreen(
     val scope = rememberCoroutineScope()
     var showSnackbar by remember { mutableStateOf(false) }
     var snackbarMessage by remember { mutableStateOf("") }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(courseId) {
         if (courseId != null && courseId > 0) {
@@ -55,17 +57,12 @@ fun AddCourseScreen(
             )
         },
         snackbarHost = {
-            if (showSnackbar) {
+            SnackbarHost(hostState = snackbarHostState) { data ->
                 Snackbar(
-                    modifier = Modifier.padding(16.dp),
-                    action = {
-                        TextButton(onClick = { showSnackbar = false }) {
-                            Text("OK")
-                        }
-                    }
-                ) {
-                    Text(snackbarMessage)
-                }
+                    snackbarData = data,
+                    containerColor = Color(0xFFFF3B30),
+                    contentColor = Color.White
+                )
             }
         }
     ) { paddingValues ->
@@ -102,7 +99,7 @@ fun AddCourseScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            TimeField(
+            TimePickerField(
                 label = "Heure de début",
                 value = viewModel.startTime.value,
                 onValueChange = { viewModel.startTime.value = it }
@@ -110,10 +107,28 @@ fun AddCourseScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            TimeField(
+            TimePickerField(
                 label = "Heure de fin",
                 value = viewModel.endTime.value,
-                onValueChange = { viewModel.endTime.value = it }
+                onValueChangeWithValidation = { hour, minute ->
+                    val formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
+                    val selectedTime = java.time.LocalTime.of(hour, minute)
+
+                    if (viewModel.startTime.value.isNotBlank()) {
+                        val startTime = java.time.LocalTime.parse(viewModel.startTime.value, formatter)
+
+                        if (selectedTime.isBefore(startTime)) {
+                            scope.launch {
+                                snackbarHostState.showSnackbar(
+                                    "⛔ L'heure de fin doit être après l'heure de début"
+                                )
+                            }
+                            return@TimePickerField
+                        }
+                    }
+
+                    viewModel.endTime.value = selectedTime.format(formatter)
+                }
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -127,7 +142,7 @@ fun AddCourseScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            TimeField(
+            TimePickerField(
                 label = "Heure de révision",
                 value = viewModel.revisionTime.value,
                 onValueChange = { viewModel.revisionTime.value = it }
@@ -138,7 +153,7 @@ fun AddCourseScreen(
             PreviewSection()
 
             Spacer(modifier = Modifier.height(24.dp))
-
+            
             Button(
                 onClick = {
                     scope.launch {
@@ -227,11 +242,14 @@ fun DayButton(
 }
 
 @Composable
-fun TimeField(
+fun TimePickerField(
     label: String,
     value: String,
-    onValueChange: (String) -> Unit
+    onValueChange: (String) -> Unit = {},
+    onValueChangeWithValidation: ((Int, Int) -> Unit)? = null
 ) {
+    var showTimePicker by remember { mutableStateOf(false) }
+
     Column {
         Text(
             text = label,
@@ -243,8 +261,11 @@ fun TimeField(
 
         OutlinedTextField(
             value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
+            onValueChange = {},
+            readOnly = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { showTimePicker = true },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Color(0xFF2A3150),
                 unfocusedContainerColor = Color(0xFF2A3150),
@@ -252,14 +273,74 @@ fun TimeField(
                 unfocusedBorderColor = Color(0xFF3D4566),
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
-                cursorColor = Color.White
+                disabledTextColor = Color.White,
+                disabledContainerColor = Color(0xFF2A3150),
+                disabledBorderColor = Color(0xFF3D4566)
             ),
             shape = RoundedCornerShape(12.dp),
             placeholder = {
                 Text("08:00", color = Color(0xFF6B7280))
+            },
+            trailingIcon = {
+                Icon(
+                    imageVector = Icons.Default.AccessTime,
+                    contentDescription = "Choisir l'heure",
+                    tint = Color.White
+                )
+            },
+            enabled = false
+        )
+    }
+
+    if (showTimePicker) {
+        TimePickerDialog(
+            onDismiss = { showTimePicker = false },
+            onConfirm = { hour, minute ->
+                if (onValueChangeWithValidation != null) {
+                    onValueChangeWithValidation(hour, minute)
+                } else {
+                    val formatted = String.format("%02d:%02d", hour, minute)
+                    onValueChange(formatted)
+                }
+                showTimePicker = false
             }
         )
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TimePickerDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (Int, Int) -> Unit
+) {
+    val timePickerState = rememberTimePickerState(
+        initialHour = 8,
+        initialMinute = 0,
+        is24Hour = true
+    )
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = {
+                onConfirm(timePickerState.hour, timePickerState.minute)
+            }) {
+                Text("OK", color = Color(0xFF6C63FF), fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Annuler", color = Color.Gray)
+            }
+        },
+        containerColor = Color.White,
+        text = {
+            TimePicker(
+                state = timePickerState
+            )
+        }
+    )
 }
 
 @Composable

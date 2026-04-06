@@ -8,9 +8,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.*
+import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.SelectableDates
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,8 +35,7 @@ fun AddExamScreen(
     onNavigateBack: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
-    var showSnackbar by remember { mutableStateOf(false) }
-    var snackbarMessage by remember { mutableStateOf("") }
+    val snackbarHostState = remember { SnackbarHostState() }
     val courses by viewModel.courses.collectAsState()
     val availableWeeks by viewModel.availableWeeks
     val isLateWarning by viewModel.isLateWarning
@@ -64,17 +67,12 @@ fun AddExamScreen(
             )
         },
         snackbarHost = {
-            if (showSnackbar) {
+            SnackbarHost(hostState = snackbarHostState) { data ->
                 Snackbar(
-                    modifier = Modifier.padding(16.dp),
-                    action = {
-                        TextButton(onClick = { showSnackbar = false }) {
-                            Text("OK")
-                        }
-                    }
-                ) {
-                    Text(snackbarMessage)
-                }
+                    snackbarData = data,
+                    containerColor = Color(0xFFFF3B30),
+                    contentColor = Color.White
+                )
             }
         }
     ) { paddingValues ->
@@ -137,7 +135,7 @@ fun AddExamScreen(
                 Spacer(modifier = Modifier.height(20.dp))
             }
 
-            TimeField(
+            TimePickerField(
                 label = "Heure de l'examen",
                 value = viewModel.examTime.value,
                 onValueChange = { viewModel.examTime.value = it }
@@ -190,8 +188,9 @@ fun AddExamScreen(
                         if (success) {
                             onNavigateBack()
                         } else {
-                            snackbarMessage = "Veuillez remplir tous les champs obligatoires"
-                            showSnackbar = true
+                            snackbarHostState.showSnackbar(
+                                "⚠️ Veuillez remplir tous les champs obligatoires"
+                            )
                         }
                     }
                 },
@@ -210,6 +209,13 @@ fun AddExamScreen(
     }
 
     if (showDatePicker) {
+        val today = java.util.Calendar.getInstance().apply {
+            set(java.util.Calendar.HOUR_OF_DAY, 0)
+            set(java.util.Calendar.MINUTE, 0)
+            set(java.util.Calendar.SECOND, 0)
+            set(java.util.Calendar.MILLISECOND, 0)
+        }.timeInMillis
+
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = try {
                 LocalDate.parse(viewModel.examDate.value)
@@ -217,7 +223,12 @@ fun AddExamScreen(
                     .toInstant()
                     .toEpochMilli()
             } catch (e: Exception) {
-                System.currentTimeMillis()
+                today
+            },
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                    return utcTimeMillis >= today
+                }
             }
         )
 
@@ -233,20 +244,39 @@ fun AddExamScreen(
                     }
                     showDatePicker = false
                 }) {
-                    Text("OK")
+                    Text("OK", color = Color(0xFF6C63FF), fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDatePicker = false }) {
-                    Text("Annuler")
+                    Text("Annuler", color = Color.Gray)
                 }
-            }
+            },
+            colors = DatePickerDefaults.colors(
+                containerColor = Color.White
+            )
         ) {
-            DatePicker(state = datePickerState)
+            DatePicker(
+                state = datePickerState,
+                colors = DatePickerDefaults.colors(
+                    containerColor = Color.White,
+                    dayContentColor = Color.Black,
+                    selectedDayContentColor = Color.White,
+                    selectedDayContainerColor = Color(0xFF6C63FF),
+                    todayContentColor = Color(0xFF6C63FF),
+                    todayDateBorderColor = Color(0xFF6C63FF),
+                    titleContentColor = Color.Black,
+                    headlineContentColor = Color.Black,
+                    navigationContentColor = Color(0xFF6C63FF),
+                    disabledDayContentColor = Color.Gray,
+                    weekdayContentColor = Color.DarkGray
+                )
+            )
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CourseDropdown(
     label: String,
@@ -265,44 +295,44 @@ fun CourseDropdown(
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
-        Box {
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = it }
+        ) {
             OutlinedTextField(
                 value = selectedCourse?.name ?: "Sélectionner un cours",
                 onValueChange = {},
                 readOnly = true,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { expanded = true },
+                    .menuAnchor(MenuAnchorType.PrimaryEditable),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFF2A3150),
-                    unfocusedContainerColor = Color(0xFF2A3150),
-                    focusedBorderColor = Color(0xFF6C63FF),
-                    unfocusedBorderColor = Color(0xFF3D4566),
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White,
-                    disabledTextColor = Color.White,
-                    disabledContainerColor = Color(0xFF2A3150),
-                    disabledBorderColor = Color(0xFF3D4566)
+                    focusedBorderColor = Color(0xFF4B39EF),
+                    unfocusedBorderColor = Color(0xFF3D4566),
+                    focusedContainerColor = Color(0xFF2A3150),
+                    unfocusedContainerColor = Color(0xFF2A3150)
                 ),
                 shape = RoundedCornerShape(12.dp),
                 trailingIcon = {
-                    Icon(
-                        Icons.Default.ArrowDropDown,
-                        contentDescription = null,
-                        tint = Color.White
-                    )
-                },
-                enabled = false
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                }
             )
 
-            DropdownMenu(
+            ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                modifier = Modifier.fillMaxWidth(0.9f)
+                modifier = Modifier.background(Color(0xFF2A3150))
             ) {
                 courses.forEach { course ->
                     DropdownMenuItem(
-                        text = { Text(course.name) },
+                        text = {
+                            Text(
+                                text = course.name,
+                                color = Color.White
+                            )
+                        },
                         onClick = {
                             onCourseSelected(course)
                             expanded = false
@@ -541,18 +571,26 @@ fun DatePickerField(
             shape = RoundedCornerShape(12.dp),
             enabled = false,
             trailingIcon = {
-                Text("📅", fontSize = 20.sp)
+                IconButton(onClick = onShowPicker) {
+                    Icon(
+                        imageVector = Icons.Default.CalendarToday,
+                        contentDescription = "Choisir la date",
+                        tint = Color.White
+                    )
+                }
             }
         )
     }
 }
 
 @Composable
-fun TimeField(
+fun TimePickerField(
     label: String,
     value: String,
     onValueChange: (String) -> Unit
 ) {
+    var showTimePicker by remember { mutableStateOf(false) }
+
     Column {
         Text(
             text = label,
@@ -564,8 +602,11 @@ fun TimeField(
 
         OutlinedTextField(
             value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
+            onValueChange = {},
+            readOnly = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { showTimePicker = true },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Color(0xFF2A3150),
                 unfocusedContainerColor = Color(0xFF2A3150),
@@ -573,14 +614,70 @@ fun TimeField(
                 unfocusedBorderColor = Color(0xFF3D4566),
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
-                cursorColor = Color.White
+                disabledTextColor = Color.White,
+                disabledContainerColor = Color(0xFF2A3150),
+                disabledBorderColor = Color(0xFF3D4566)
             ),
             shape = RoundedCornerShape(12.dp),
             placeholder = {
                 Text("09:00", color = Color(0xFF6B7280))
+            },
+            trailingIcon = {
+                Icon(
+                    imageVector = Icons.Default.AccessTime,
+                    contentDescription = "Choisir l'heure",
+                    tint = Color.White
+                )
+            },
+            enabled = false
+        )
+    }
+
+    if (showTimePicker) {
+        TimePickerDialog(
+            onDismiss = { showTimePicker = false },
+            onConfirm = { hour, minute ->
+                val formatted = String.format("%02d:%02d", hour, minute)
+                onValueChange(formatted)
+                showTimePicker = false
             }
         )
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TimePickerDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (Int, Int) -> Unit
+) {
+    val timePickerState = rememberTimePickerState(
+        initialHour = 9,
+        initialMinute = 0,
+        is24Hour = true
+    )
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = {
+                onConfirm(timePickerState.hour, timePickerState.minute)
+            }) {
+                Text("OK", color = Color(0xFF6C63FF), fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Annuler", color = Color.Gray)
+            }
+        },
+        containerColor = Color.White,
+        text = {
+            TimePicker(
+                state = timePickerState
+            )
+        }
+    )
 }
 
 @Composable
@@ -671,7 +768,7 @@ fun DurationField(
                 else -> "${minutes}min"
             }
             Text(
-                text = "≈ $timeText",
+                text = "= $timeText",
                 fontSize = 12.sp,
                 color = Color(0xFF9CA3AF),
                 modifier = Modifier.padding(top = 4.dp, start = 4.dp)

@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ca.uqac.studify.ui.components.TaskCard
@@ -85,9 +86,9 @@ fun HomeScreen(
                 DropdownMenu(
                     expanded = showMenu,
                     onDismissRequest = { showMenu = false },
+                    offset = DpOffset(x = (-16).dp, y = (-120).dp),
                     modifier = Modifier
                         .background(Color(0xFF1E243D))
-                        .padding(8.dp)
                 ) {
                     DropdownMenuItem(
                         text = {
