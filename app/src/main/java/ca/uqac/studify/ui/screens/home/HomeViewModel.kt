@@ -1,5 +1,4 @@
 package ca.uqac.studify.ui.screens.home
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ca.uqac.studify.data.model.Task

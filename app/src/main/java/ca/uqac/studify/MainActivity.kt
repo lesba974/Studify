@@ -1,5 +1,5 @@
 package ca.uqac.studify
-
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -19,7 +19,7 @@ import ca.uqac.studify.ui.screens.schedule.AddCourseViewModel
 import ca.uqac.studify.ui.screens.schedule.ScheduleViewModel
 import ca.uqac.studify.ui.theme.StudifyTheme
 import kotlinx.coroutines.launch
-
+import ca.uqac.studify.receiver.TaskReminderReceiver
 class MainActivity : ComponentActivity() {
 
     // Database

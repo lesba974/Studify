@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ca.uqac.studify.ui.screens.detail.formatDateToFrench
@@ -28,12 +29,39 @@ import java.time.format.DateTimeFormatter
 import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
+
 fun AddEditTaskScreen(
     viewModel: AddEditTaskViewModel,
     taskId: Long? = null,
     onNavigateBack: () -> Unit
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+
+    // --- DÉBUT CODE PERMISSION À AJOUTER ---
+    val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            if (!isGranted) {
+                viewModel.updateIsReminderEnabled(false)
+            }
+        }
+    )
+
+    LaunchedEffect(Unit) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            val permissionStatus = androidx.core.content.ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.POST_NOTIFICATIONS
+            )
+            if (permissionStatus != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                permissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+    // --- FIN CODE PERMISSION À AJOUTER ---
+
     LaunchedEffect(taskId) {
         if (taskId != null) {
             viewModel.loadTask(taskId)
@@ -103,7 +131,8 @@ fun AddEditTaskScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(24.dp)
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.Top
             ) {
 
                 FormField(
@@ -470,6 +499,43 @@ fun AddEditTaskScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
+                // --- DÉBUT DU SWITCH À AJOUTER ---
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFF2A3150), RoundedCornerShape(12.dp))
+                        .padding(16.dp),
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Activer le rappel",
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "Recevoir une notification à l'heure du début",
+                            color = Color.Gray,
+                            fontSize = 12.sp
+                        )
+                    }
+                    Switch(
+                        checked = viewModel.isReminderEnabled,
+                        onCheckedChange = { viewModel.updateIsReminderEnabled(it) },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = Color(0xFF6C63FF),
+                            uncheckedThumbColor = Color.Gray,
+                            uncheckedTrackColor = Color(0xFF1B2244)
+                        )
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
+                // --- FIN DU SWITCH À AJOUTER ---
+
                 Button(
                     onClick = {
                         if (viewModel.title.isBlank()) {
@@ -480,7 +546,7 @@ fun AddEditTaskScreen(
                                 )
                             }
                         } else {
-                            viewModel.saveTask {
+                            viewModel.saveTask(context) {
                                 onNavigateBack()
                             }
                         }
