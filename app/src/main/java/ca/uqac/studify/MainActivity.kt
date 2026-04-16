@@ -1,4 +1,7 @@
 package ca.uqac.studify
+import android.Manifest
+import android.os.Build
+import androidx.activity.result.contract.ActivityResultContracts
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -21,7 +24,12 @@ import ca.uqac.studify.ui.theme.StudifyTheme
 import kotlinx.coroutines.launch
 import ca.uqac.studify.receiver.TaskReminderReceiver
 class MainActivity : ComponentActivity() {
+    //Lanceur de demande de permissions
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
 
+    }
     // Database
     private lateinit var database: StudifyDatabase
 
@@ -40,7 +48,17 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        //  NOUVEAU : Demander les permissions au lancement
+        val permissionsToRequest = mutableListOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+        // Si on est sur Android 13 ou plus, on demande aussi pour les notifications
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
 
+        requestPermissionLauncher.launch(permissionsToRequest.toTypedArray())
         // Initialize Database
         database = StudifyDatabase.getDatabase(applicationContext)
 

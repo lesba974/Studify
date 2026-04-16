@@ -1,5 +1,6 @@
 package ca.uqac.studify.ui.screens.addEdit
-
+import com.google.android.gms.location.LocationServices
+import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -15,6 +16,15 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
+import android.location.Geocoder
+import android.content.Intent
+import android.app.PendingIntent
+import android.util.Log
+import java.util.Locale
+import com.google.android.gms.location.GeofencingRequest
+import com.google.android.gms.location.Geofence
+import android.widget.Toast
+
 
 class AddEditTaskViewModel : ViewModel() {
 
@@ -130,7 +140,20 @@ class AddEditTaskViewModel : ViewModel() {
                     )
                 }
             }
+            //  GESTION DE LA LOCALISATION
+            if (location.isNotBlank() && isReminderEnabled) {
+                // On essaie de trouver les coordonnées GPS du texte entré
+                val coordinates = getCoordinatesFromAddress(context, location)
+                if (coordinates != null) {
+                    val (lat, lng) = coordinates
+                    setupLocationTrigger(context, location, lat, lng)
+                    Toast.makeText(context, "📍 Zone GPS activée pour : $location", Toast.LENGTH_SHORT).show()
+                } else {
+                    // NOUVEAU : Un message si l'adresse est introuvable
+                    Toast.makeText(context, " Adresse GPS introuvable. Essaie d'être plus précis.", Toast.LENGTH_LONG).show()
+                }
 
+            }
 
             onSuccess()
         }
@@ -161,5 +184,59 @@ class AddEditTaskViewModel : ViewModel() {
         currentTaskId = null
         date = getTodayISO()
         isReminderEnabled = true
+    }
+    // 1. Fonction pour convertir le texte (ex: "UQAC") en GPS
+    private fun getCoordinatesFromAddress(context: Context, address: String): Pair<Double, Double>? {
+        val geocoder = Geocoder(context, Locale.getDefault())
+        return try {
+            val addresses = geocoder.getFromLocationName(address, 1)
+            if (!addresses.isNullOrEmpty()) {
+                val location = addresses[0]
+                Pair(location.latitude, location.longitude)
+            } else null
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    // 2. Fonction pour créer la zone de surveillance GPS
+    @SuppressLint("MissingPermission")
+    private fun setupLocationTrigger(context: Context, locationName: String, latitude: Double, longitude: Double) {
+        try {
+            val geofencingClient = LocationServices.getGeofencingClient(context)
+
+            val geofence = Geofence.Builder()
+                .setRequestId(locationName)
+                .setCircularRegion(latitude, longitude, 150f)
+                .setExpirationDuration(Geofence.NEVER_EXPIRE)
+                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
+                .build()
+
+            val geofencingRequest = GeofencingRequest.Builder()
+                .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+                .addGeofence(geofence)
+                .build()
+
+            val intent = Intent(context, ca.uqac.studify.receiver.GeofenceReceiver::class.java)
+            val pendingIntent = PendingIntent.getBroadcast(
+                context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+            )
+
+            geofencingClient.addGeofences(geofencingRequest, pendingIntent)
+                .addOnSuccessListener {
+                    android.util.Log.d("STUDIFY_GPS", " Geofence ajouté avec succès !")
+                }
+                .addOnFailureListener { exception ->
+                    android.util.Log.e("STUDIFY_GPS", " Erreur Geofence : ${exception.message}")
+                }
+
+        } catch (e: SecurityException) {
+            // BOUCLIER 1 : Intercepte le crash lié aux permissions
+            android.util.Log.e("STUDIFY_GPS", "🛡 CRASH ÉVITÉ : Il manque la permission 'Toujours autoriser' !")
+        } catch (e: Exception) {
+            // BOUCLIER 2 : Intercepte n'importe quel autre crash
+            android.util.Log.e("STUDIFY_GPS", "🛡 CRASH ÉVITÉ : Erreur inconnue : ${e.message}")
+        }
     }
 }

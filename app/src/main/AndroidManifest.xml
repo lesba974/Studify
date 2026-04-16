@@ -1,11 +1,28 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permission pour afficher la notification -->
+
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-    <!-- Permission OBLIGATOIRE sur Android 14 (API 34) pour utiliser setExact() -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
+
+
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+
+
+    <!-- Permissions pour les notifications et alarmes -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
+    <!-- Nouvelles permissions pour la Localisation -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -28,12 +45,12 @@
             </intent-filter>
         </activity>
 
-        <!-- android:exported="false" est une bonne pratique de sécurité
-             pour empêcher les autres applications de déclencher tes alarmes -->
         <receiver
             android:name=".receiver.TaskReminderReceiver"
             android:exported="false"/>
-
+        <receiver
+            android:name=".receiver.GeofenceReceiver"
+            android:exported="true"/>
     </application>
 
 </manifest>
