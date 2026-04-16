@@ -39,7 +39,6 @@ fun AddEditTaskScreen(
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
 
-    // --- DÉBUT CODE PERMISSION À AJOUTER ---
     val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
         contract = androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
         onResult = { isGranted ->
@@ -60,7 +59,6 @@ fun AddEditTaskScreen(
             }
         }
     }
-    // --- FIN CODE PERMISSION À AJOUTER ---
 
     LaunchedEffect(taskId) {
         if (taskId != null) {
@@ -499,7 +497,6 @@ fun AddEditTaskScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // --- DÉBUT DU SWITCH À AJOUTER ---
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -534,7 +531,6 @@ fun AddEditTaskScreen(
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
-                // --- FIN DU SWITCH À AJOUTER ---
 
                 Button(
                     onClick = {

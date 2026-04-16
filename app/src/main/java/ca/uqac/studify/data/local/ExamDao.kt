@@ -10,6 +10,9 @@ interface ExamDao {
     @Query("SELECT * FROM exams ORDER BY examDate ASC, examTime ASC")
     fun getAllExams(): Flow<List<Exam>>
 
+    @Query("SELECT * FROM exams ORDER BY examDate ASC, examTime ASC")
+    suspend fun getAllExamsList(): List<Exam>
+
     @Query("SELECT * FROM exams WHERE id = :examId")
     suspend fun getExamById(examId: Long): Exam?
 

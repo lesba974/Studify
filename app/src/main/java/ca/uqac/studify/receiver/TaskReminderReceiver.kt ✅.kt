@@ -14,7 +14,6 @@ class TaskReminderReceiver : BroadcastReceiver() {
 
         val title = intent.getStringExtra("title") ?: "Rappel"
         val message = intent.getStringExtra("message") ?: "C'est l'heure !"
-        // On récupère l'ID (par défaut 1 si on ne le trouve pas)
         val notificationId = intent.getIntExtra("notificationId", 1)
 
         val channelId = "task_channel"

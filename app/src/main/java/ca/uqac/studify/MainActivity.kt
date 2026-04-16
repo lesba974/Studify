@@ -24,20 +24,16 @@ import ca.uqac.studify.ui.theme.StudifyTheme
 import kotlinx.coroutines.launch
 import ca.uqac.studify.receiver.TaskReminderReceiver
 class MainActivity : ComponentActivity() {
-    //Lanceur de demande de permissions
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
 
     }
-    // Database
     private lateinit var database: StudifyDatabase
 
-    // Repositories
     private lateinit var taskRepository: TaskRepository
     private lateinit var academicRepository: AcademicRepository
 
-    // ViewModels
     private lateinit var homeViewModel: HomeViewModel
     private lateinit var detailViewModel: DetailViewModel
     private lateinit var addEditTaskViewModel: AddEditTaskViewModel
@@ -48,21 +44,17 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        //  NOUVEAU : Demander les permissions au lancement
         val permissionsToRequest = mutableListOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION
         )
-        // Si on est sur Android 13 ou plus, on demande aussi pour les notifications
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
         }
 
         requestPermissionLauncher.launch(permissionsToRequest.toTypedArray())
-        // Initialize Database
         database = StudifyDatabase.getDatabase(applicationContext)
 
-        // Initialize Repositories
         taskRepository = TaskRepository(database.taskDao())
         academicRepository = AcademicRepository(
             courseDao = database.courseDao(),
@@ -70,7 +62,6 @@ class MainActivity : ComponentActivity() {
             taskDao = database.taskDao()
         )
 
-        // Initialize ViewModels
         homeViewModel = HomeViewModel().apply {
             setRepository(taskRepository)
         }
@@ -95,7 +86,6 @@ class MainActivity : ComponentActivity() {
             setRepository(academicRepository)
         }
 
-        // Update tasks to next occurrence on app launch
         lifecycleScope.launch {
             taskRepository.updateTasksToNextOccurrence()
         }

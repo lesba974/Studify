@@ -387,7 +387,7 @@ fun WeekOption(
         modifier = modifier
             .background(
                 color = when {
-                    !isEnabled -> Color(0xFF1A1F35) // Désactivé
+                    !isEnabled -> Color(0xFF1A1F35)
                     isSelected -> Color(0xFF6C63FF).copy(alpha = 0.1f)
                     else -> Color(0xFF2A3150)
                 },
@@ -396,7 +396,7 @@ fun WeekOption(
             .border(
                 width = 2.dp,
                 color = when {
-                    !isEnabled -> Color(0xFF2A2F45) // Border grisé
+                    !isEnabled -> Color(0xFF2A2F45)
                     isSelected -> Color(0xFF6C63FF)
                     else -> Color.Transparent
                 },

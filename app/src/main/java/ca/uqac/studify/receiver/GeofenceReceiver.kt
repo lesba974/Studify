@@ -30,7 +30,6 @@ class GeofenceReceiver : BroadcastReceiver() {
             return
         }
 
-        // Si l'utilisateur ENTRE dans la zone
         if (geofencingEvent.geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
             val triggeringGeofences = geofencingEvent.triggeringGeofences
             val locationName = triggeringGeofences?.get(0)?.requestId ?: "Ta destination"

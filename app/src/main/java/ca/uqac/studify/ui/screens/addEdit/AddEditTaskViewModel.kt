@@ -77,9 +77,8 @@ class AddEditTaskViewModel : ViewModel() {
     fun updatePriority(newPriority: String) { priority = newPriority }
     fun updateEndTime(newEndTime: String) { endTime = newEndTime }
     fun updateDate(newDate: String) { date = newDate }
-    fun updateIsReminderEnabled(enabled: Boolean) { isReminderEnabled = enabled } // FONCTION POUR L'INTERRUPTEUR
+    fun updateIsReminderEnabled(enabled: Boolean) { isReminderEnabled = enabled }
 
-    //  CHARGEMENT D'UNE TÂCHE
     fun loadTask(taskId: Long) {
         viewModelScope.launch {
             repository.getTaskById(taskId)?.let { task ->
@@ -98,7 +97,6 @@ class AddEditTaskViewModel : ViewModel() {
         }
     }
 
-    // SAUVEGARDE ET NOTIFICATION
     fun saveTask(context: Context, onSuccess: () -> Unit) {
         if (title.isBlank()) return
 
@@ -116,14 +114,12 @@ class AddEditTaskViewModel : ViewModel() {
                 priority = priority
             )
 
-            // 1. On sauvegarde dans la base de données
             if (currentTaskId == null) {
                 repository.insertTask(task)
             } else {
                 repository.updateTask(task)
             }
 
-            // 2. On programme la notification SI l'interrupteur est activé
             if (isReminderEnabled) {
                 val timeInMillis = calculateTimeInMillis(date, time)
 
@@ -140,16 +136,13 @@ class AddEditTaskViewModel : ViewModel() {
                     )
                 }
             }
-            //  GESTION DE LA LOCALISATION
             if (location.isNotBlank() && isReminderEnabled) {
-                // On essaie de trouver les coordonnées GPS du texte entré
                 val coordinates = getCoordinatesFromAddress(context, location)
                 if (coordinates != null) {
                     val (lat, lng) = coordinates
                     setupLocationTrigger(context, location, lat, lng)
                     Toast.makeText(context, "📍 Zone GPS activée pour : $location", Toast.LENGTH_SHORT).show()
                 } else {
-                    // NOUVEAU : Un message si l'adresse est introuvable
                     Toast.makeText(context, " Adresse GPS introuvable. Essaie d'être plus précis.", Toast.LENGTH_LONG).show()
                 }
 
@@ -185,7 +178,6 @@ class AddEditTaskViewModel : ViewModel() {
         date = getTodayISO()
         isReminderEnabled = true
     }
-    // 1. Fonction pour convertir le texte (ex: "UQAC") en GPS
     private fun getCoordinatesFromAddress(context: Context, address: String): Pair<Double, Double>? {
         val geocoder = Geocoder(context, Locale.getDefault())
         return try {
@@ -200,7 +192,6 @@ class AddEditTaskViewModel : ViewModel() {
         }
     }
 
-    // 2. Fonction pour créer la zone de surveillance GPS
     @SuppressLint("MissingPermission")
     private fun setupLocationTrigger(context: Context, locationName: String, latitude: Double, longitude: Double) {
         try {
@@ -232,10 +223,8 @@ class AddEditTaskViewModel : ViewModel() {
                 }
 
         } catch (e: SecurityException) {
-            // BOUCLIER 1 : Intercepte le crash lié aux permissions
             android.util.Log.e("STUDIFY_GPS", "🛡 CRASH ÉVITÉ : Il manque la permission 'Toujours autoriser' !")
         } catch (e: Exception) {
-            // BOUCLIER 2 : Intercepte n'importe quel autre crash
             android.util.Log.e("STUDIFY_GPS", "🛡 CRASH ÉVITÉ : Erreur inconnue : ${e.message}")
         }
     }

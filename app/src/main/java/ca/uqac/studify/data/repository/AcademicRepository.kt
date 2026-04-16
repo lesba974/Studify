@@ -25,8 +25,9 @@ class AcademicRepository(
 
     suspend fun updateCourse(course: Course, oldCourseName: String? = null, revisionTime: String = "18:00") {
         if (oldCourseName != null && oldCourseName != course.name) {
-            deleteRoutinesForCourseName(oldCourseName)
-            generateRoutinesFromCourse(course, revisionTime)
+            updateRoutinesForCourseName(oldCourseName, course, revisionTime)
+
+            updateExamForCourseName(oldCourseName, course)
         } else {
             updateRoutinesForCourse(course, revisionTime)
         }
@@ -34,16 +35,64 @@ class AcademicRepository(
         courseDao.updateCourse(course)
     }
 
-    private suspend fun deleteRoutinesForCourseName(courseName: String) {
+    private suspend fun updateRoutinesForCourseName(oldCourseName: String, newCourse: Course, revisionTime: String) {
         val allTasks = taskDao.getAllTasksList()
+        val firstOccurrence = getNextDayOfWeek(LocalDate.parse(newCourse.startDate), newCourse.dayOfWeek)
 
-        val tasksToDelete = allTasks.filter { task ->
-            (task.title == "Cours de $courseName" && task.category == "Cours") ||
-                    (task.title == "Révision $courseName" && task.category == "Révision")
+        allTasks.find { task ->
+            task.title == "Cours de $oldCourseName" && task.category == "Cours"
+        }?.let { courseTask ->
+            val updatedTask = courseTask.copy(
+                title = "Cours de ${newCourse.name}",
+                time = newCourse.startTime,
+                endTime = newCourse.endTime,
+                date = firstOccurrence.toString(),
+                location = newCourse.location
+            )
+            taskDao.updateTask(updatedTask)
         }
 
-        tasksToDelete.forEach { task ->
-            taskDao.deleteTaskById(task.id)
+        allTasks.find { task ->
+            task.title == "Révision $oldCourseName" &&
+                    task.category == "Révision" &&
+                    task.periodicity == "Hebdomadaire"
+        }?.let { revisionTask ->
+            val updatedTask = revisionTask.copy(
+                title = "Révision ${newCourse.name}",
+                time = revisionTime,
+                endTime = calculateEndTime(revisionTime, 60),
+                date = firstOccurrence.toString()
+            )
+            taskDao.updateTask(updatedTask)
+        }
+    }
+
+    private suspend fun updateExamForCourseName(oldCourseName: String, newCourse: Course) {
+        val allExams = examDao.getAllExamsList()
+
+        val exam = allExams.find { it.courseId == newCourse.id }
+
+        exam?.let { currentExam ->
+            val updatedExam = currentExam.copy(courseName = newCourse.name)
+            examDao.updateExam(updatedExam)
+
+            val allTasks = taskDao.getAllTasksList()
+
+            allTasks.find { task ->
+                task.title == "Examen $oldCourseName" && task.category == "Examen"
+            }?.let { examTask ->
+                val updatedTask = examTask.copy(title = "Examen ${newCourse.name}")
+                taskDao.updateTask(updatedTask)
+            }
+
+            allTasks.filter { task ->
+                task.title == "Révision $oldCourseName" &&
+                        task.category == "Révision" &&
+                        task.periodicity == "Une fois"
+            }.forEach { revisionTask ->
+                val updatedTask = revisionTask.copy(title = "Révision ${newCourse.name}")
+                taskDao.updateTask(updatedTask)
+            }
         }
     }
 
@@ -79,7 +128,34 @@ class AcademicRepository(
 
     suspend fun deleteCourse(course: Course) {
         deleteRoutinesForCourse(course)
+
+        deleteRoutinesForExamsByCourse(course)
+
         courseDao.deleteCourse(course)
+    }
+
+    private suspend fun deleteRoutinesForExamsByCourse(course: Course) {
+        val allExams = examDao.getAllExamsList()
+        val courseExams = allExams.filter { it.courseId == course.id }
+
+        courseExams.forEach { exam ->
+            deleteRoutinesForExam(exam)
+        }
+    }
+
+    private suspend fun deleteRoutinesForExam(exam: Exam) {
+        val allTasks = taskDao.getAllTasksList()
+
+        val tasksToDelete = allTasks.filter { task ->
+            (task.title == "Examen ${exam.courseName}" && task.category == "Examen") ||
+                    (task.title == "Révision ${exam.courseName}" &&
+                            task.category == "Révision" &&
+                            task.periodicity == "Une fois")
+        }
+
+        tasksToDelete.forEach { task ->
+            taskDao.deleteTaskById(task.id)
+        }
     }
 
     private suspend fun deleteRoutinesForCourse(course: Course) {
@@ -130,7 +206,7 @@ class AcademicRepository(
             description = "Relire les notes du cours et faire les exercices",
             category = "Révision",
             time = revisionTime,
-            endTime = calculateEndTime(revisionTime, 60), // 1h de révision
+            endTime = calculateEndTime(revisionTime, 60),
             date = firstOccurrence.toString(),
             location = "À la maison",
             periodicity = "Hebdomadaire",
