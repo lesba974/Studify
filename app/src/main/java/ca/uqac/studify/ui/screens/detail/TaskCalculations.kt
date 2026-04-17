@@ -7,12 +7,12 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Locale
 
-data class TaskCalculations(
+data class NextOccurrence(
     val date: String,
     val timeRemaining: String
 )
 
-fun calculateNextOccurrence(task: Task): TaskCalculations? {
+fun calculateNextOccurrence(task: Task): NextOccurrence? {
     if (task.periodicity == "Une fois" || task.date.isNullOrBlank()) {
         return null
     }
@@ -52,7 +52,7 @@ fun calculateNextOccurrence(task: Task): TaskCalculations? {
             else -> "Dans ${daysUntil / 30} mois"
         }
 
-        return TaskCalculations(formattedDate, timeRemaining)
+        return NextOccurrence(formattedDate, timeRemaining)
 
     } catch (e: Exception) {
         return null
@@ -82,12 +82,20 @@ fun getUpdatedTaskIfNeeded(task: Task): Task? {
 
         var nextDate = taskDate
 
-        while (nextDate.isBefore(now) || nextDate.isEqual(now)) {
+        while (true) {
             nextDate = when (task.periodicity) {
                 "Quotidienne" -> nextDate.plusDays(1)
                 "Hebdomadaire" -> nextDate.plusWeeks(1)
                 "Mensuelle" -> nextDate.plusMonths(1)
                 else -> return null
+            }
+
+            if (nextDate.isAfter(now)) {
+                break
+            }
+
+            if (nextDate.isEqual(now) && !taskTime.isBefore(currentTime)) {
+                break
             }
         }
 
@@ -100,6 +108,7 @@ fun getUpdatedTaskIfNeeded(task: Task): Task? {
 
 fun isTaskActive(task: Task): Boolean {
     if (task.date.isNullOrBlank()) {
+        android.util.Log.d("TASK_ACTIVE", "Task ${task.title}: date blank -> ACTIVE")
         return true
     }
 
@@ -109,17 +118,34 @@ fun isTaskActive(task: Task): Boolean {
         val now = LocalDate.now()
         val currentTime = LocalTime.now()
 
+        android.util.Log.d("TASK_ACTIVE", "Task ${task.title}:")
+        android.util.Log.d("TASK_ACTIVE", "  Date: $taskDate, Time: $taskTime")
+        android.util.Log.d("TASK_ACTIVE", "  Now: $now, Current time: $currentTime")
+        android.util.Log.d("TASK_ACTIVE", "  Periodicity: ${task.periodicity}")
+
         if (task.periodicity == "Une fois") {
-            return when {
-                taskDate.isAfter(now) -> true
-                taskDate.isEqual(now) && !taskTime.isBefore(currentTime) -> true
-                else -> false
+            val isActive = when {
+                taskDate.isAfter(now) -> {
+                    android.util.Log.d("TASK_ACTIVE", "  Result: ACTIVE (date future)")
+                    true
+                }
+                taskDate.isEqual(now) && !taskTime.isBefore(currentTime) -> {
+                    android.util.Log.d("TASK_ACTIVE", "  Result: ACTIVE (today, time not passed)")
+                    true
+                }
+                else -> {
+                    android.util.Log.d("TASK_ACTIVE", "  Result: ARCHIVED (date/time passed)")
+                    false
+                }
             }
+            return isActive
         }
 
+        android.util.Log.d("TASK_ACTIVE", "  Result: ACTIVE (recurring)")
         return true
 
     } catch (e: Exception) {
+        android.util.Log.e("TASK_ACTIVE", "Error for task ${task.title}: ${e.message}")
         return true
     }
 }

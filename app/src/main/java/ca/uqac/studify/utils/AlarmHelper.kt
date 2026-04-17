@@ -7,7 +7,7 @@ import android.content.Intent
 
 fun scheduleNotification(
     context: Context,
-    notificationId: Int, // NOUVEAU : On demande un ID unique
+    notificationId: Int,
     timeInMillis: Long,
     title: String,
     message: String
@@ -15,7 +15,7 @@ fun scheduleNotification(
     val intent = Intent(context, ca.uqac.studify.receiver.TaskReminderReceiver::class.java).apply {
         putExtra("title", title)
         putExtra("message", message)
-        putExtra("notificationId", notificationId) // NOUVEAU : On glisse l'ID dans l'enveloppe
+        putExtra("notificationId", notificationId)
     }
 
     val pendingIntent = PendingIntent.getBroadcast(
