@@ -34,7 +34,6 @@ class AddEditTaskViewModel : ViewModel() {
 
     private lateinit var repository: TaskRepository
 
-    // États UI
     var title by mutableStateOf("")
         private set
     var description by mutableStateOf("")
@@ -57,7 +56,6 @@ class AddEditTaskViewModel : ViewModel() {
     var isReminderEnabled by mutableStateOf(true)
         private set
 
-    // Pour éviter d'ajouter plusieurs geofences pour la même tâche
     private var lastAddedGeofenceId: String? = null
 
     fun setRepository(repo: TaskRepository) {
@@ -114,17 +112,14 @@ class AddEditTaskViewModel : ViewModel() {
                 priority = priority
             )
 
-            // Sauvegarde en base
             if (currentTaskId == null) {
                 repository.insertTask(task)
-                // Récupérer l'ID généré si besoin
                 val newId = repository.getTaskById(task.id)?.id ?: task.id
                 currentTaskId = newId
             } else {
                 repository.updateTask(task)
             }
 
-            // Notification temporelle
             if (isReminderEnabled) {
                 val timeInMillis = calculateTimeInMillis(date, time)
                 if (timeInMillis != null && timeInMillis > System.currentTimeMillis()) {
@@ -139,9 +134,7 @@ class AddEditTaskViewModel : ViewModel() {
                 }
             }
 
-            // Géofence
             if (location.isNotBlank() && isReminderEnabled) {
-                // Vérifier les permissions de localisation (à implémenter via un callback)
                 if (!hasLocationPermissions(context)) {
                     onLocationError("Permissions de localisation insuffisantes. Active 'Toujours autoriser'.")
                     onSuccess()
@@ -215,7 +208,6 @@ class AddEditTaskViewModel : ViewModel() {
         try {
             val geofencingClient = LocationServices.getGeofencingClient(context)
 
-            // Utiliser un requestId unique basé sur l'ID de la tâche
             val uniqueRequestId = "task_${taskId}_${System.currentTimeMillis()}"
             lastAddedGeofenceId = uniqueRequestId
 
@@ -234,7 +226,7 @@ class AddEditTaskViewModel : ViewModel() {
             val intent = Intent(context, GeofenceReceiver::class.java)
             val pendingIntent = PendingIntent.getBroadcast(
                 context,
-                taskId.toInt(), // utilise l'ID comme requestCode pour distinguer
+                taskId.toInt(),
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
             )
@@ -253,7 +245,6 @@ class AddEditTaskViewModel : ViewModel() {
         }
     }
 
-    // Fonction utilitaire à appeler depuis l'activité (ou à passer en paramètre)
     private fun hasLocationPermissions(context: Context): Boolean {
         return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
             androidx.core.content.ContextCompat.checkSelfPermission(
@@ -272,7 +263,6 @@ class AddEditTaskViewModel : ViewModel() {
         }
     }
 
-    // À appeler lors de la suppression d'une tâche pour nettoyer le geofence
     fun removeGeofence(context: Context, taskId: Long) {
         val geofencingClient = LocationServices.getGeofencingClient(context)
         val intent = Intent(context, GeofenceReceiver::class.java)

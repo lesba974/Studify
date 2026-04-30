@@ -38,7 +38,6 @@ class MainActivity : ComponentActivity() {
     private lateinit var addCourseViewModel: AddCourseViewModel
     private lateinit var addExamViewModel: AddExamViewModel
 
-    // Demande de permissions multiples (fine + background)
     private val locationPermissionRequest = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -51,7 +50,6 @@ class MainActivity : ComponentActivity() {
             Log.d("PERMISSION", "Toutes les permissions de localisation sont accordées")
         } else {
             Log.w("PERMISSION", "Permissions de localisation refusées")
-            // Option : afficher une explication à l'utilisateur
         }
     }
 
@@ -59,7 +57,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // DB + repositories
         database = StudifyDatabase.getDatabase(applicationContext)
         taskRepository = TaskRepository(database.taskDao())
         academicRepository = AcademicRepository(
@@ -68,7 +65,6 @@ class MainActivity : ComponentActivity() {
             taskDao = database.taskDao()
         )
 
-        // ViewModels
         homeViewModel = HomeViewModel().apply { setRepository(taskRepository) }
         detailViewModel = DetailViewModel().apply { setRepository(taskRepository) }
         addEditTaskViewModel = AddEditTaskViewModel().apply { setRepository(taskRepository) }
@@ -95,7 +91,6 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // Demander les permissions au démarrage
         requestLocationPermissions()
     }
 
