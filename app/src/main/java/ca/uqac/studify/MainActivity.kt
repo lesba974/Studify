@@ -1,13 +1,15 @@
 package ca.uqac.studify
+
 import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Build
-import androidx.activity.result.contract.ActivityResultContracts
-import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.LaunchedEffect
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
 import ca.uqac.studify.data.local.StudifyDatabase
@@ -22,15 +24,10 @@ import ca.uqac.studify.ui.screens.schedule.AddCourseViewModel
 import ca.uqac.studify.ui.screens.schedule.ScheduleViewModel
 import ca.uqac.studify.ui.theme.StudifyTheme
 import kotlinx.coroutines.launch
-import ca.uqac.studify.receiver.TaskReminderReceiver
+
 class MainActivity : ComponentActivity() {
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
 
-    }
     private lateinit var database: StudifyDatabase
-
     private lateinit var taskRepository: TaskRepository
     private lateinit var academicRepository: AcademicRepository
 
@@ -41,20 +38,29 @@ class MainActivity : ComponentActivity() {
     private lateinit var addCourseViewModel: AddCourseViewModel
     private lateinit var addExamViewModel: AddExamViewModel
 
+    // Demande de permissions multiples (fine + background)
+    private val locationPermissionRequest = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val fineLocationGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
+        val backgroundGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            permissions[Manifest.permission.ACCESS_BACKGROUND_LOCATION] == true
+        } else true
+
+        if (fineLocationGranted && backgroundGranted) {
+            Log.d("PERMISSION", "Toutes les permissions de localisation sont accordées")
+        } else {
+            Log.w("PERMISSION", "Permissions de localisation refusées")
+            // Option : afficher une explication à l'utilisateur
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val permissionsToRequest = mutableListOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        )
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
-        }
 
-        requestPermissionLauncher.launch(permissionsToRequest.toTypedArray())
+        // DB + repositories
         database = StudifyDatabase.getDatabase(applicationContext)
-
         taskRepository = TaskRepository(database.taskDao())
         academicRepository = AcademicRepository(
             courseDao = database.courseDao(),
@@ -62,29 +68,13 @@ class MainActivity : ComponentActivity() {
             taskDao = database.taskDao()
         )
 
-        homeViewModel = HomeViewModel().apply {
-            setRepository(taskRepository)
-        }
-
-        detailViewModel = DetailViewModel().apply {
-            setRepository(taskRepository)
-        }
-
-        addEditTaskViewModel = AddEditTaskViewModel().apply {
-            setRepository(taskRepository)
-        }
-
-        scheduleViewModel = ScheduleViewModel().apply {
-            setRepository(academicRepository)
-        }
-
-        addCourseViewModel = AddCourseViewModel().apply {
-            setRepository(academicRepository)
-        }
-
-        addExamViewModel = AddExamViewModel().apply {
-            setRepository(academicRepository)
-        }
+        // ViewModels
+        homeViewModel = HomeViewModel().apply { setRepository(taskRepository) }
+        detailViewModel = DetailViewModel().apply { setRepository(taskRepository) }
+        addEditTaskViewModel = AddEditTaskViewModel().apply { setRepository(taskRepository) }
+        scheduleViewModel = ScheduleViewModel().apply { setRepository(academicRepository) }
+        addCourseViewModel = AddCourseViewModel().apply { setRepository(academicRepository) }
+        addExamViewModel = AddExamViewModel().apply { setRepository(academicRepository) }
 
         lifecycleScope.launch {
             taskRepository.updateTasksToNextOccurrence()
@@ -93,7 +83,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             StudifyTheme {
                 val navController = rememberNavController()
-
                 NavGraph(
                     navController = navController,
                     homeViewModel = homeViewModel,
@@ -105,5 +94,34 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
+
+        // Demander les permissions au démarrage
+        requestLocationPermissions()
+    }
+
+    private fun requestLocationPermissions() {
+        val permissionsToRequest = mutableListOf(Manifest.permission.ACCESS_FINE_LOCATION)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            permissionsToRequest.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+        }
+
+        val needToRequest = permissionsToRequest.any {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+
+        if (needToRequest) {
+            locationPermissionRequest.launch(permissionsToRequest.toTypedArray())
+        } else {
+            Log.d("PERMISSION", "Permissions déjà accordées")
+        }
+    }
+
+
+    fun hasFullLocationPermissions(): Boolean {
+        val fine = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        val background = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED
+        } else true
+        return fine && background
     }
 }

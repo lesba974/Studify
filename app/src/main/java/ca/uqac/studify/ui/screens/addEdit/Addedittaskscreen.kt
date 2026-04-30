@@ -9,7 +9,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,21 +16,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ca.uqac.studify.ui.screens.detail.formatDateToFrench
 import kotlinx.coroutines.launch
-import java.time.Instant
 import java.time.LocalTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
-
 @Composable
-
 fun AddEditTaskScreen(
     viewModel: AddEditTaskViewModel,
     taskId: Long? = null,
@@ -365,7 +359,6 @@ fun AddEditTaskScreen(
                     TimePickerDialog(
                         onDismiss = { showEndTimePicker = false },
                         onConfirm = { hour, minute ->
-
                             val formatter = DateTimeFormatter.ofPattern("HH:mm")
                             val selectedTime = LocalTime.of(hour, minute)
 
@@ -373,15 +366,12 @@ fun AddEditTaskScreen(
                                 val startTime = LocalTime.parse(viewModel.time, formatter)
 
                                 if (selectedTime.isBefore(startTime)) {
-
                                     showEndTimePicker = false
-
                                     scope.launch {
                                         snackbarHostState.showSnackbar(
                                             "⛔ L'heure de fin doit être après l'heure de début"
                                         )
                                     }
-
                                     return@TimePickerDialog
                                 }
                             }
@@ -532,6 +522,7 @@ fun AddEditTaskScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
+
                 Button(
                     onClick = {
                         if (viewModel.title.isBlank()) {
@@ -542,9 +533,17 @@ fun AddEditTaskScreen(
                                 )
                             }
                         } else {
-                            viewModel.saveTask(context) {
-                                onNavigateBack()
-                            }
+                            viewModel.saveTask(
+                                context = context,
+                                onSuccess = {
+                                    onNavigateBack()
+                                },
+                                onLocationError = { errorMessage ->
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(errorMessage)
+                                    }
+                                }
+                            )
                         }
                     },
                     modifier = Modifier
@@ -678,21 +677,15 @@ fun DatePickerDialog(
             state = datePickerState,
             colors = DatePickerDefaults.colors(
                 containerColor = Color.White,
-
                 dayContentColor = Color.Black,
                 selectedDayContentColor = Color.White,
                 selectedDayContainerColor = Color(0xFF6C63FF),
-
                 todayContentColor = Color(0xFF6C63FF),
                 todayDateBorderColor = Color(0xFF6C63FF),
-
                 titleContentColor = Color.Black,
                 headlineContentColor = Color.Black,
-
                 navigationContentColor = Color(0xFF6C63FF),
-
                 disabledDayContentColor = Color.Gray,
-
                 weekdayContentColor = Color.DarkGray
             )
         )
